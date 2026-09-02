@@ -6,6 +6,11 @@ export type PaymentLayer  = 'PAYMENT_LAYER' | 'RISK_ENGINE' | 'AUTH_SERVICE' | '
 export interface KrypticAlert {
   id          : string;
   incidentId  : string;
+  customerId  : string;
+  customerName?: string;
+  transactionId: string;
+  amount      ?: number;
+  gateway     ?: string;
   title       : string;
   severity    : AlertSeverity;
   source      : string;
@@ -72,6 +77,8 @@ const ago = (min: number): Date => new Date(Date.now() - min * 60_000);
 export const INITIAL_ALERTS: KrypticAlert[] = [
   {
     id: 'ALT-001', incidentId: 'INC-2053',
+    customerId: 'CUST-001', customerName: 'Apex Merchant Solutions',
+    transactionId: 'TXN-12345', amount: 284500, gateway: 'System A (Payment Gateway)',
     title: 'Unusual Payment Spike Detected',
     severity: 'CRITICAL', source: 'Risk Engine Layer', paymentLayer: 'RISK_ENGINE',
     description: 'Synchronized high-frequency transaction burst detected across multiple merchant accounts. Pattern consistent with coordinated fraud-ring activity.',
@@ -79,6 +86,8 @@ export const INITIAL_ALERTS: KrypticAlert[] = [
   },
   {
     id: 'ALT-002', incidentId: 'INC-2052',
+    customerId: 'CUST-002', customerName: 'Siddharth V. Verma',
+    transactionId: 'TXN-49201', amount: 98200, gateway: 'System B (UPI Partner)',
     title: 'High OTP Failure Rate',
     severity: 'CRITICAL', source: 'Auth Service', paymentLayer: 'AUTH_SERVICE',
     description: 'OTP failure rate has exceeded 367% of normal baseline. Multiple accounts targeted from the same IP subnet. Possible credential-stuffing attack in progress.',
@@ -86,6 +95,8 @@ export const INITIAL_ALERTS: KrypticAlert[] = [
   },
   {
     id: 'ALT-003', incidentId: 'INC-2051',
+    customerId: 'CUST-2048', customerName: 'Global Nexus Logistics',
+    transactionId: 'TXN-88192', amount: 145000, gateway: 'System C (Core Banking)',
     title: 'Velocity Anomaly Detected',
     severity: 'HIGH', source: 'Transaction Router', paymentLayer: 'ROUTER',
     description: 'Abnormal transaction velocity in the routing layer. Multiple accounts showing synchronized patterns across 3 payment gateways simultaneously.',
@@ -93,6 +104,8 @@ export const INITIAL_ALERTS: KrypticAlert[] = [
   },
   {
     id: 'ALT-004', incidentId: 'INC-2050',
+    customerId: 'CUST-004', customerName: 'Priya Narayanan',
+    transactionId: 'TXN-65103', amount: 14200, gateway: 'System A (Payment Gateway)',
     title: 'New Device Login Spike',
     severity: 'MEDIUM', source: 'User Service', paymentLayer: 'USER_SERVICE',
     description: 'Unusual spike in logins from new and unrecognized devices detected across 289 user accounts over the last 35 minutes.',
@@ -100,6 +113,8 @@ export const INITIAL_ALERTS: KrypticAlert[] = [
   },
   {
     id: 'ALT-005', incidentId: 'INC-2049',
+    customerId: 'CUST-005', customerName: 'Vanguard Retail Traders',
+    transactionId: 'TXN-77391', amount: 120000, gateway: 'System D (Card Rail)',
     title: 'Large Amount Transactions',
     severity: 'MEDIUM', source: 'Payment Gateway', paymentLayer: 'PAYMENT_GATEWAY',
     description: 'Multiple high-value transactions above ₹1,00,000 threshold detected from accounts that were flagged in prior risk assessments.',
@@ -107,6 +122,8 @@ export const INITIAL_ALERTS: KrypticAlert[] = [
   },
   {
     id: 'ALT-006', incidentId: 'INC-2048',
+    customerId: 'CUST-006', customerName: 'Horizon Trade Partners',
+    transactionId: 'TXN-33418', amount: 560000, gateway: 'System A (Payment Gateway)',
     title: 'Cross-Border Surge Detected',
     severity: 'HIGH', source: 'Payment Layer', paymentLayer: 'PAYMENT_LAYER',
     description: 'Significant surge in cross-border transactions detected from high-risk jurisdictions. Geo-risk analysis initiated.',
@@ -114,6 +131,8 @@ export const INITIAL_ALERTS: KrypticAlert[] = [
   },
   {
     id: 'ALT-007', incidentId: 'INC-2047',
+    customerId: 'CUST-001', customerName: 'Apex Merchant Solutions',
+    transactionId: 'TXN-90214', amount: 8500, gateway: 'System B (UPI Partner)',
     title: 'API Rate Limit Breach',
     severity: 'LOW', source: 'Risk Engine Layer', paymentLayer: 'RISK_ENGINE',
     description: 'API rate limit exceeded for multiple merchant IDs. Automated scraping pattern detected and merchant IDs subsequently blocked.',
@@ -283,13 +302,24 @@ const POOL: Array<Pick<KrypticAlert, 'title' | 'severity' | 'source' | 'paymentL
 
 let _alertCtr = INITIAL_ALERTS.length + 1;
 let _incCtr   = 2054;
+const CUST_POOL = ['CUST-001', 'CUST-002', 'CUST-2048', 'CUST-004', 'CUST-005', 'CUST-006'];
+const GATEWAY_POOL = ['System A (Payment Gateway)', 'System B (UPI Partner)', 'System C (Core Banking)', 'System D (Card Rail)'];
 
 export function generateNewAlert(): KrypticAlert {
   const tmpl = POOL[Math.floor(Math.random() * POOL.length)];
   const id   = `ALT-${String(_alertCtr++).padStart(3, '0')}`;
   const base = tmpl.severity === 'CRITICAL' ? 88 : tmpl.severity === 'HIGH' ? 70 : tmpl.severity === 'MEDIUM' ? 45 : 20;
+  const custId = CUST_POOL[Math.floor(Math.random() * CUST_POOL.length)];
+  const txnId = `TXN-${Math.floor(10000 + Math.random() * 90000)}`;
+  const gw = GATEWAY_POOL[Math.floor(Math.random() * GATEWAY_POOL.length)];
+  const amt = Math.floor(5000 + Math.random() * 250000);
+
   return {
     id, incidentId: `INC-${_incCtr++}`,
+    customerId: custId,
+    transactionId: txnId,
+    amount: amt,
+    gateway: gw,
     title: tmpl.title, severity: tmpl.severity, source: tmpl.source, paymentLayer: tmpl.paymentLayer,
     description: `Auto-detected: ${tmpl.metric} anomaly in ${tmpl.source}. Immediate review required.`,
     riskScore: base + Math.floor(Math.random() * 10),

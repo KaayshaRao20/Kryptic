@@ -18,6 +18,7 @@ import {
   getRiskDistribution, getExplanation, formatINR, formatTime,
   type FilterState, type SpikeAlert, type HourlyBucket,
 } from '../services/payment/PaymentService';
+import { useCustomer } from '../context/CustomerContext';
 
 // ─── Types ────────────────────────────────────────────────────────
 type Tab = 'overview' | 'transactions' | 'clusters' | 'otp' | 'risk';
@@ -942,6 +943,7 @@ function FilterSidebar({
 
 // ─── MAIN PAGE ────────────────────────────────────────────────────
 export const Payment: React.FC = () => {
+  const { selectedCustomer, activeTransactionId } = useCustomer();
   const [activeTab, setActiveTab] = useState<Tab>('overview');
   const [pendingFilters, setPendingFilters] = useState<FilterState>(DEFAULT_FILTER);
   const [appliedFilters, setAppliedFilters] = useState<FilterState>(DEFAULT_FILTER);
@@ -1008,8 +1010,14 @@ export const Payment: React.FC = () => {
         {/* Header */}
         <div className="bg-white border-b border-gray-200 px-5 py-3 flex items-center justify-between flex-shrink-0">
           <div>
-            <h1 className="text-[18px] font-bold text-gray-900">Payment Intelligence</h1>
-            <p className="text-[12px] text-gray-400">Monitor, detect spikes, and analyze payment behavior in real-time</p>
+            <h1 className="text-[18px] font-bold text-gray-900">
+              {selectedCustomer ? `${selectedCustomer.name} • Payment Intelligence` : 'Payment Intelligence'}
+            </h1>
+            <p className="text-[12px] text-gray-400">
+              {selectedCustomer
+                ? `Isolated payment stream and risk clustering for ${selectedCustomer.id} (${selectedCustomer.accountType})`
+                : 'Monitor, detect spikes, and analyze payment behavior in real-time'}
+            </p>
           </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5 text-[12.5px] text-gray-600 border border-gray-200 rounded-lg px-3 py-1.5 bg-white">

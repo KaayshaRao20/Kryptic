@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   CreditCard,
@@ -10,42 +10,92 @@ import {
   FileText,
   Settings,
   ShieldAlert,
-  Zap
+  Zap,
+  ArrowLeft,
+  Activity,
+  Sliders,
+  Sparkles
 } from 'lucide-react';
+import { useCustomer } from '../../context/CustomerContext';
 import { cn } from '../../lib/utils';
 
-const navItems = [
-  { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-  { name: 'Payment', path: '/payments', icon: CreditCard },
-  { name: 'Digital Twin', path: '/infrastructure/twin', icon: Network },
-  { name: 'Twin Lab', path: '/infrastructure/lab', icon: TestTube2 },
-  { name: 'Cross-System Risk Intelligence', path: '/cross-system', icon: Share2 },
-  { name: 'Alerts & Emergency', path: '/alerts', icon: BellRing },
-  { name: 'Reports', path: '/system/datasets', icon: FileText },
-  { name: 'Configuration', path: '/connectors', icon: Settings },
-];
-
 export const Sidebar: React.FC = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { selectedCustomer, selectedCustomerId, returnToAdmin, isCustomerView } = useCustomer();
+
+  // Admin Portal primary items (strictly 3 administrative views)
+  const adminNavItems = [
+    { name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
+    { name: 'Risk & Alerts', path: '/admin/alerts', icon: BellRing },
+    { name: 'Risk Intelligence / Reports', path: '/admin/reports', icon: FileText },
+  ];
+
+  // Customer View items (customer-specific)
+  const custId = selectedCustomerId || 'CUST-001';
+  const customerNavItems = [
+    { name: 'Customer Dashboard', path: `/customer/${custId}/dashboard`, icon: LayoutDashboard },
+    { name: 'Payment Flow', path: `/customer/${custId}/payments`, icon: CreditCard },
+    { name: 'Digital Twin', path: `/customer/${custId}/twin`, icon: Network },
+    { name: 'Twin Lab', path: `/customer/${custId}/lab`, icon: TestTube2 },
+    { name: 'Cross-System Risk', path: `/customer/${custId}/cross-system`, icon: Share2 },
+    { name: 'Alerts & Emergency', path: `/customer/${custId}/alerts`, icon: BellRing },
+    { name: 'Fraud Detection & Intelligence', path: `/customer/${custId}/detection`, icon: ShieldAlert },
+    { name: 'Explainable AI', path: `/customer/${custId}/explain`, icon: Sparkles },
+  ];
+
   return (
-    <aside className="w-64 bg-white border-r border-gray-100 h-screen flex flex-col pt-5 px-3.5 overflow-y-auto select-none">
-      {/* ─── KRYPTIC Header / Logo ─── */}
-      <div className="flex items-center gap-3 px-2 mb-7">
-        <div className="w-9 h-9 rounded-xl bg-purple-600 flex items-center justify-center shadow-md shadow-purple-200">
-          <Zap className="w-5 h-5 text-white" />
-        </div>
-        <div>
-          <span className="text-base font-black tracking-wider text-textPrimary block leading-none">
-            KRYPTIC
-          </span>
-          <span className="text-[10px] font-semibold text-textSecondary tracking-normal">
-            AI Risk Manager
-          </span>
+    <aside className="w-64 bg-white border-r border-gray-100 h-screen flex flex-col pt-5 px-3.5 overflow-y-auto select-none shrink-0">
+      {/* ─── KRYPTIC Brand Header ─── */}
+      <div className="flex items-center justify-between px-2 mb-5">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-purple-600 flex items-center justify-center shadow-md shadow-purple-200">
+            <Zap className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <span className="text-base font-black tracking-wider text-textPrimary block leading-none">
+              KRYPTIC
+            </span>
+            <span className="text-[10px] font-semibold text-textSecondary tracking-normal">
+              {isCustomerView ? 'Customer Risk View' : 'Enterprise Risk Platform'}
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* ─── Main Navigation ─── */}
+      {/* ─── Customer View Mode Switcher Header ─── */}
+      {isCustomerView && (
+        <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-xl space-y-2">
+          <button
+            onClick={returnToAdmin}
+            className="w-full inline-flex items-center justify-center gap-2 py-1.5 px-2.5 rounded-lg border border-gray-300 bg-white text-xs font-semibold text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-all shadow-xs"
+          >
+            <ArrowLeft className="w-3.5 h-3.5 text-gray-500" />
+            <span>Back to Admin Portal</span>
+          </button>
+          
+          <div className="pt-1.5 border-t border-gray-200/80">
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="text-gray-400 font-medium">Customer:</span>
+              <span className="font-mono font-bold text-gray-900">{custId}</span>
+            </div>
+            <p className="text-[10px] text-gray-500 truncate mt-0.5">
+              {selectedCustomer?.name || 'Isolated Client Account'}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Section Header ─── */}
+      <div className="px-2 pb-2">
+        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+          {isCustomerView ? 'Customer Navigation' : 'Admin Navigation'}
+        </span>
+      </div>
+
+      {/* ─── Navigation Links ─── */}
       <nav className="flex-1 space-y-1">
-        {navItems.map((item) => {
+        {(isCustomerView ? customerNavItems : adminNavItems).map((item) => {
           const Icon = item.icon;
           return (
             <NavLink
@@ -67,63 +117,22 @@ export const Sidebar: React.FC = () => {
         })}
       </nav>
 
-      {/* ─── Bottom Footer Widgets Matching Reference ─── */}
+      {/* ─── Bottom Footer System Status ─── */}
       <div className="mt-4 pt-3 border-t border-gray-100 space-y-3 pb-4">
-        {/* System Status Card */}
         <div className="bg-secondary/40 border border-gray-100 rounded-xl p-3">
           <p className="text-[10px] font-bold text-textSecondary uppercase tracking-wider mb-1">
-            System Status
+            {isCustomerView ? 'Client Isolation' : 'System Status'}
           </p>
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-xs font-bold text-textPrimary">All Systems Operational</span>
+            <span className="text-xs font-bold text-textPrimary">
+              {isCustomerView ? `Filtered: ${custId}` : 'All Systems Monitored'}
+            </span>
           </div>
-          <p className="text-[10px] text-textSecondary mt-0.5">Last updated: 10:32:45 AM</p>
+          <p className="text-[10px] text-textSecondary mt-0.5">
+            {isCustomerView ? 'Zero leakage across tenants' : 'ML Engine: XGBoost v2.0.0'}
+          </p>
         </div>
-
-        {/* 3D Isometric Platform Graphic */}
-        <div className="relative w-full h-28 flex items-center justify-center overflow-hidden rounded-xl bg-gradient-to-b from-purple-50/30 to-purple-100/30 border border-purple-100/50">
-          <svg viewBox="0 0 160 110" className="w-full h-full">
-            <defs>
-              <linearGradient id="shieldGrad" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor="#A855F7" />
-                <stop offset="100%" stopColor="#6366F1" />
-              </linearGradient>
-              <linearGradient id="platformGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#EDE9FE" stopOpacity="0.8" />
-                <stop offset="100%" stopColor="#DDD6FE" stopOpacity="0.4" />
-              </linearGradient>
-            </defs>
-
-            {/* Isometric Platform Planes */}
-            <polygon points="80,50 135,72 80,94 25,72" fill="url(#platformGrad)" stroke="#C4B5FD" strokeWidth="1" />
-            <polygon points="25,72 80,94 80,102 25,80" fill="#DDD6FE" />
-            <polygon points="135,72 80,94 80,102 135,80" fill="#C4B5FD" />
-
-            {/* Inner Ring */}
-            <ellipse cx="80" cy="72" rx="34" ry="16" fill="none" stroke="#A78BFA" strokeWidth="1" strokeDasharray="3 3" />
-
-            {/* Glowing 3D Shield */}
-            <g transform="translate(68, 30)">
-              <polygon points="12,0 24,5 24,18 12,25 0,18 0,5" fill="url(#shieldGrad)" />
-              <polygon points="12,2 22,6 22,17 12,23 2,17 2,6" fill="#8B5CF6" opacity="0.6" />
-              <path d="M12 5 L8 13 L12 13 L11 20 L16 11 L12 11 Z" fill="#FFFFFF" />
-            </g>
-
-            {/* Floating Dots / Data Nodes */}
-            <circle cx="45" cy="55" r="2.5" fill="#8B5CF6" />
-            <circle cx="115" cy="55" r="2.5" fill="#8B5CF6" />
-            <circle cx="80" cy="98" r="2" fill="#6366F1" />
-            <line x1="45" y1="55" x2="68" y2="42" stroke="#C4B5FD" strokeWidth="0.8" strokeDasharray="2 2" />
-            <line x1="115" y1="55" x2="92" y2="42" stroke="#C4B5FD" strokeWidth="0.8" strokeDasharray="2 2" />
-          </svg>
-        </div>
-
-        {/* Motto Text */}
-        <p className="text-center text-[10.5px] font-bold text-purple-700 tracking-tight leading-snug">
-          Stronger together.<br />
-          Safer everywhere.
-        </p>
       </div>
     </aside>
   );

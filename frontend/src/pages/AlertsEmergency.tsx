@@ -13,6 +13,7 @@ import {
   type KrypticAlert, type AlertSeverity, type EmergencyAction,
   type ActivityLogEntry, type SystemState,
 } from '../services/AlertsService';
+import { useCustomer } from '../context/CustomerContext';
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
 const SEV_STYLE: Record<AlertSeverity, {
@@ -674,15 +675,23 @@ type FilterType = 'All' | AlertSeverity;
 export function AlertsEmergency() {
   const navigate = useNavigate();
   const alertsRef = useRef<HTMLDivElement>(null);
+  const { selectedCustomer, selectedCustomerId, activeAlertId } = useCustomer();
 
   const [alerts,        setAlerts]        = useState<KrypticAlert[]>(INITIAL_ALERTS);
   const [filter,        setFilter]        = useState<FilterType>('All');
   const [showAll,       setShowAll]       = useState(false);
-  const [selectedId,    setSelectedId]    = useState<string | null>(null);
+  const [selectedId,    setSelectedId]    = useState<string | null>(activeAlertId || null);
   const [emergencyOpen, setEmergencyOpen] = useState(false);
   const [systemState,   setSystemState]   = useState<SystemState>(INITIAL_SYSTEM_STATE);
   const [activityLog,   setActivityLog]   = useState<ActivityLogEntry[]>(INITIAL_ACTIVITY_LOG);
   const [toasts,        setToasts]        = useState<{ id: string; alert: KrypticAlert }[]>([]);
+
+  // Sync with active alert from Admin click
+  useEffect(() => {
+    if (activeAlertId) {
+      setSelectedId(activeAlertId);
+    }
+  }, [activeAlertId]);
 
   // ── Auto-generate alerts every 8s ─────────────────────────────────────────
   useEffect(() => {
@@ -708,10 +717,11 @@ export function AlertsEmergency() {
 
   const markInvestigating = (alertId: string) => {
     setAlerts(prev => prev.map(a => a.id === alertId ? { ...a, status: 'INVESTIGATING' } : a));
+    const a = alerts.find(x => x.id === alertId);
     const entry: ActivityLogEntry = {
-      id: `LOG-${Date.now()}`, timestamp: new Date(), incidentId: alertId,
-      action: 'Marked as Investigating', result: `Alert ${alertId} escalated to investigation.`,
-      severity: 'HIGH', actor: 'Admin',
+      id: `act-${Date.now()}`, timestamp: new Date(),
+      action: 'Status → Investigating', result: `${a?.incidentId ?? alertId} marked for review.`,
+      severity: 'MEDIUM', actor: 'Admin',
     };
     setActivityLog(prev => [entry, ...prev]);
   };
@@ -728,16 +738,21 @@ export function AlertsEmergency() {
     setSelectedId(null);
   };
 
-  // ── Derived values ────────────────────────────────────────────────────────
-  const totalAlerts       = alerts.length;
-  const criticalCount     = alerts.filter(a => a.severity === 'CRITICAL').length;
-  const investigatingCount= alerts.filter(a => a.status === 'INVESTIGATING').length;
-  const resolvedCount     = alerts.filter(a => a.status === 'RESOLVED').length;
+  // ── Customer Scoped Data Isolation ────────────────────────────────────────
+  const scopedAlerts      = selectedCustomerId
+    ? alerts.filter(a => a.customerId === selectedCustomerId)
+    : alerts;
+  const baseAlerts        = scopedAlerts.length > 0 ? scopedAlerts : alerts;
 
-  const filteredAlerts = filter === 'All' ? alerts : alerts.filter(a => a.severity === filter);
+  const totalAlerts       = baseAlerts.length;
+  const criticalCount     = baseAlerts.filter(a => a.severity === 'CRITICAL').length;
+  const investigatingCount= baseAlerts.filter(a => a.status === 'INVESTIGATING').length;
+  const resolvedCount     = baseAlerts.filter(a => a.status === 'RESOLVED').length;
+
+  const filteredAlerts = filter === 'All' ? baseAlerts : baseAlerts.filter(a => a.severity === filter);
   const displayedAlerts = showAll ? filteredAlerts : filteredAlerts.slice(0, 5);
 
-  const activeAlerts       = alerts.filter(a => a.status !== 'RESOLVED');
+  const activeAlerts       = baseAlerts.filter(a => a.status !== 'RESOLVED');
   const liveRiskScore      = activeAlerts.length
     ? activeAlerts.reduce((acc, a) => acc + a.riskScore, 0) / activeAlerts.length
     : 0;
