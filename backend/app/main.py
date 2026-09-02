@@ -9,6 +9,7 @@ from app.api.health import router as health_router
 from app.api.v1 import api_v1_router
 from app.services.prediction.base import ModelRegistry
 from app.services.prediction.dummy_service import DummyPredictionService
+from app.services.prediction.ml_service import MLPredictionService
 
 # Configure logging
 logging.basicConfig(
@@ -24,9 +25,10 @@ async def lifespan(app: FastAPI):
     logger.info("Initializing KRYPTIC Engine database tables...")
     init_db()
     
-    # Ensure active prediction service is registered
-    if not ModelRegistry._services:
-        ModelRegistry.register("v1.0.0-dummy-predictor", DummyPredictionService(), set_active=True)
+    # Register trained XGBoost ML Prediction Service as active engine
+    ml_service = MLPredictionService()
+    ModelRegistry.register("v2.0.0-xgb-paysim", ml_service, set_active=True)
+    ModelRegistry.register("v1.0.0-dummy-predictor", DummyPredictionService(), set_active=False)
     logger.info(f"KRYPTIC Engine started successfully. Active ML Model: {ModelRegistry.get_active_version()}")
 
     yield
