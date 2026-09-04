@@ -108,9 +108,11 @@ export const Sidebar: React.FC = () => {
           onClick={() => navigate('/admin/dashboard')}
           title="Kryptic Risk Management"
         >
-          <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 shrink-0">
-            <Shield className="w-5 h-5 text-white fill-white/20" />
-          </div>
+          <img
+            src="/logo.png"
+            alt="Kryptic Logo"
+            className="w-9 h-9 rounded-xl object-contain shrink-0 shadow-xs group-hover:scale-105 transition-transform"
+          />
           {!isCollapsed && (
             <div className="leading-tight truncate">
               <span className="text-base font-black tracking-tight text-slate-900 block group-hover:text-blue-600 transition-colors">

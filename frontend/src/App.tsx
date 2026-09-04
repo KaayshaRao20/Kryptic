@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AppLayout } from './components/layout/AppLayout';
 import { CustomerProvider } from './context/CustomerContext';
 import { EnvironmentProvider } from './context/EnvironmentContext';
@@ -22,11 +23,50 @@ import { ReturnRiskScorer } from './pages/ReturnRiskScorer';
 import { Connectors } from './pages/Connectors';
 import { LandingPage } from './pages/LandingPage';
 
+const TITLE_MAP: Record<string, string> = {
+  '/': 'Kryptic | AI Payment Risk & Fraud Intelligence',
+  '/landing': 'Kryptic | AI Payment Risk & Fraud Intelligence',
+  '/admin': 'Overview | Kryptic',
+  '/admin/dashboard': 'Overview & Digital Twin | Kryptic',
+  '/admin/alerts': 'Alerts Command Queue | Kryptic',
+  '/alerts': 'Emergency Defense Console | Kryptic',
+  '/admin/reports': 'Reports & Audits | Kryptic',
+  '/chargebacks': 'Disputes & Chargebacks | Kryptic',
+  '/returns': 'Order & Return Risk Scorer | Kryptic',
+  '/connectors': 'Razorpay Integration Settings | Kryptic',
+  '/intelligence/detection': 'Real-Time Fraud Detection | Kryptic',
+  '/intelligence/explain': 'Explainable AI & SHAP | Kryptic',
+  '/payments': 'Payment Intelligence Analytics | Kryptic',
+  '/system/evaluation': 'Model Evaluation Benchmark | Kryptic',
+  '/system/datasets': 'Risk Datasets & Training | Kryptic',
+  '/system/settings': 'System Settings | Kryptic',
+  '/twin': 'Digital Twin Simulation Lab | Kryptic',
+  '/infrastructure/twin': 'Digital Twin Simulation Lab | Kryptic',
+  '/infrastructure/lab': 'Fraud Injection Lab | Kryptic',
+  '/cross-system': 'Cross-System Risk Ring | Kryptic',
+};
+
+function PageTitleManager() {
+  const location = useLocation();
+
+  useEffect(() => {
+    const path = location.pathname;
+    if (path.startsWith('/customer/')) {
+      document.title = 'Customer Risk Dossier | Kryptic';
+    } else {
+      document.title = TITLE_MAP[path] || 'Kryptic | AI Payment Risk & Fraud Intelligence';
+    }
+  }, [location]);
+
+  return null;
+}
+
 function App() {
   return (
     <TwinProvider>
       <EnvironmentProvider>
         <BrowserRouter>
+          <PageTitleManager />
           <CustomerProvider>
             <Routes>
             {/* Public Landing Page (Zero internal business logic, high conversion overview) */}

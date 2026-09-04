@@ -22,9 +22,11 @@ export const LandingPage: React.FC = () => {
       <header className="sticky top-0 z-50 backdrop-blur-md bg-white/95 border-b border-slate-200 px-6 lg:px-12 py-3.5">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => navigate('/')}>
-            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-xs">
-              <Shield className="w-4 h-4 text-white" />
-            </div>
+            <img
+              src="/logo.png"
+              alt="Kryptic Logo"
+              className="w-8 h-8 rounded-lg object-contain shrink-0 shadow-xs hover:scale-105 transition-transform"
+            />
             <div className="leading-tight">
               <span className="text-base font-bold tracking-tight text-slate-900 block">
                 Kryptic
