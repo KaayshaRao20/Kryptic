@@ -2,7 +2,6 @@
 
 **AI Risk Manager for Modern Payments**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Frontend](https://img.shields.io/badge/Frontend-React%20%7C%20TypeScript%20%7C%20Vite-61dafb.svg)](frontend/)
 [![Backend](https://img.shields.io/badge/Backend-FastAPI%20%7C%20Python-009688.svg)](backend/)
 [![ML Model](https://img.shields.io/badge/ML%20Engine-XGBoost%20v2.0.0-orange.svg)](models/)
@@ -46,7 +45,6 @@ KRYPTIC is not a fraud-detection dashboard. It is a risk *intelligence layer*: a
 26. [What Makes KRYPTIC Different](#what-makes-kryptic-different)
 27. [Current Status & Limitations](#current-status--limitations)
 28. [Roadmap](#roadmap)
-29. [License](#license)
 
 ---
 
@@ -838,12 +836,6 @@ Future work under consideration:
 - Deeper gateway integrations
 - Stronger automated dispute evidence generation
 - Production infrastructure hardening
-
----
-
-## License
-
-This project is licensed under the **MIT License**. See [`LICENSE`](./LICENSE) for details.
 
 ---
 
