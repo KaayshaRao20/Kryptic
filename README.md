@@ -4,7 +4,7 @@
 [![Frontend](https://img.shields.io/badge/Frontend-React%20%7C%20TypeScript%20%7C%20Vite-61dafb.svg)](frontend/)
 [![Backend](https://img.shields.io/badge/Backend-FastAPI%20%7C%20Python-009688.svg)](backend/)
 [![ML Model](https://img.shields.io/badge/ML%20Engine-XGBoost%20v2.0.0-orange.svg)](models/)
-[![Live Deployment](https://img.shields.io/badge/Live%20Demo-Vercel-black.svg)](https://kryptic-sooty.vercel.app)
+[![Live Deployment](https://img.shields.io/badge/Live%20Demo-Vercel-black.svg)](https://kryptic-razorpay.vercel.app)
 
 **Kryptic** is an enterprise-grade, AI-native payment risk intelligence and dispute automation platform. Built for merchants, fintechs, and payment gateways, Kryptic unifies **real-time ML fraud detection**, **e-commerce Return-to-Origin (RTO) prediction**, **automated Gemini-powered chargeback representment**, and a **Digital Twin simulation canvas** to detect, localize, and mitigate payment threats with zero human bottleneck.
 
