@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ShieldAlert,
@@ -23,13 +23,21 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { useCustomer } from '../../context/CustomerContext';
-import { INITIAL_ALERTS, type KrypticAlert, type AlertSeverity, type AlertStatus } from '../../services/AlertsService';
+import {
+  INITIAL_ALERTS,
+  fetchLiveBackendAlerts,
+  exportAlertsToCSV,
+  type KrypticAlert,
+  type AlertSeverity,
+  type AlertStatus
+} from '../../services/AlertsService';
 import { cn } from '../../lib/utils';
 
 export const AdminAlerts: React.FC = () => {
   const navigate = useNavigate();
   const { selectCustomer } = useCustomer();
   const [alerts, setAlerts] = useState<KrypticAlert[]>(INITIAL_ALERTS);
+  const [loading, setLoading] = useState<boolean>(false);
   const [selectedSeverity, setSelectedSeverity] = useState<string>('ALL');
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -40,6 +48,23 @@ export const AdminAlerts: React.FC = () => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
   };
+
+  const loadAlerts = async () => {
+    setLoading(true);
+    try {
+      const live = await fetchLiveBackendAlerts();
+      setAlerts(live);
+      showToast(`Loaded ${live.length} real-time risk events from telemetry engine`);
+    } catch (e) {
+      console.warn('Could not load live alerts:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadAlerts();
+  }, []);
 
   const filteredAlerts = useMemo(() => {
     return alerts.filter(alert => {
@@ -106,7 +131,7 @@ export const AdminAlerts: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 max-w-[1520px] mx-auto pb-12 font-sans relative">
+    <div className="w-full max-w-none space-y-6 pb-12 font-sans relative px-0">
       {/* Toast Alert */}
       {toastMessage && (
         <div className="fixed top-5 right-8 z-50 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl border border-slate-700 text-xs font-bold flex items-center gap-2.5 animate-in fade-in slide-in-from-top-3">
@@ -135,6 +160,16 @@ export const AdminAlerts: React.FC = () => {
 
         <div className="flex items-center gap-3">
           <button
+            onClick={loadAlerts}
+            disabled={loading}
+            className="px-3 py-2 bg-white border border-gray-200 hover:border-gray-300 text-gray-700 text-xs font-bold rounded-xl shadow-2xs flex items-center gap-1.5 hover:bg-gray-50 transition-colors cursor-pointer disabled:opacity-60"
+            title="Refresh Live Alert Feed"
+          >
+            <RefreshCw className={cn("w-3.5 h-3.5 text-gray-500", loading && "animate-spin text-blue-600")} />
+            <span>{loading ? 'Refreshing…' : 'Sync Telemetry'}</span>
+          </button>
+
+          <button
             onClick={() => navigate('/alerts')}
             className="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 text-xs font-bold rounded-xl flex items-center gap-2 transition-colors cursor-pointer"
           >
@@ -143,7 +178,10 @@ export const AdminAlerts: React.FC = () => {
           </button>
 
           <button
-            onClick={() => showToast('Alert audit trail downloaded as CSV')}
+            onClick={() => {
+              exportAlertsToCSV(filteredAlerts);
+              showToast(`Exported ${filteredAlerts.length} alerts to CSV`);
+            }}
             className="px-3.5 py-2 bg-white border border-gray-200 hover:border-gray-300 text-gray-700 text-xs font-bold rounded-xl shadow-2xs flex items-center gap-2 hover:bg-gray-50 transition-colors cursor-pointer"
           >
             <Download className="w-4 h-4 text-gray-500" />

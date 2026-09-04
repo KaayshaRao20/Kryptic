@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   Calendar,
   Download,
@@ -41,6 +42,7 @@ import {
 } from 'recharts';
 import { cn } from '../../lib/utils';
 import { useEnvironment } from '../../context/EnvironmentContext';
+import { metricsService } from '../../services/MetricsService';
 
 // 7-day Model Performance Trend Data
 const TREND_DATA = [
@@ -179,7 +181,20 @@ const GATEWAY_SPLIT_DATA = [
 
 export const AdminReports: React.FC = () => {
   const { isLive } = useEnvironment();
-  const [activeTab, setActiveTab] = useState('Overview');
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState(() => {
+    if (location.pathname === '/system/evaluation' || location.search.includes('evaluation')) {
+      return 'Model Evaluation';
+    }
+    return 'Overview';
+  });
+
+  useEffect(() => {
+    if (location.pathname === '/system/evaluation' || location.search.includes('evaluation')) {
+      setActiveTab('Model Evaluation');
+    }
+  }, [location.pathname, location.search]);
+
   const [modelVersion, setModelVersion] = useState('XGBoost v2.0.0 (Production)');
   const [environment, setEnvironment] = useState('Production');
   const [dataSource, setDataSource] = useState('All Systems');
@@ -189,6 +204,18 @@ export const AdminReports: React.FC = () => {
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [scheduleEmail, setScheduleEmail] = useState('risk-team@merchant.com');
   const [scheduleFrequency, setScheduleFrequency] = useState('Daily');
+  const [liveModelCard, setLiveModelCard] = useState<any>(null);
+
+  useEffect(() => {
+    metricsService.fetchModelCard().then(card => {
+      if (card) {
+        setLiveModelCard(card);
+        if (card.active_model_version) {
+          setModelVersion(`${card.active_model_version} (Production Engine)`);
+        }
+      }
+    });
+  }, []);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -232,7 +259,7 @@ export const AdminReports: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-5 max-w-[1600px] mx-auto pb-10 text-slate-800 antialiased">
+    <div className="w-full max-w-none space-y-5 pb-10 text-slate-800 antialiased px-0">
       {/* Toast Feedback */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 bg-gray-900 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-xl flex items-center gap-2 animate-bounce">

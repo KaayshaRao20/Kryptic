@@ -483,3 +483,34 @@ export function formatTime(ts: number): string {
     hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
   });
 }
+
+export function exportTransactionsToCSV(txns: Transaction[]): void {
+  const headers = ['Transaction ID', 'Entity ID', 'Timestamp', 'Amount (INR)', 'Channel', 'Type', 'Authentication', 'Risk Score', 'Risk Level', 'Location', 'Device', 'Status', 'Cluster'];
+  const rows = txns.map(t => [
+    t.id,
+    t.entityId,
+    new Date(t.timestamp).toISOString(),
+    t.amount,
+    t.channel,
+    `"${t.type}"`,
+    t.authentication,
+    t.riskScore,
+    t.riskLevel,
+    `"${t.location}"`,
+    `"${t.device}"`,
+    t.status,
+    `"${t.cluster}"`
+  ]);
+
+  const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `Payment_Intelligence_Transactions_${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+

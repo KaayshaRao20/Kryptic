@@ -15,7 +15,7 @@ import type { Transaction, ClusterLabel, Channel } from '../data/payment/mockDat
 import {
   filterTransactions, getOverviewMetrics, getHourlyData, detectSpikes,
   getChannelDistribution, getClusterStats, getOTPStats,
-  getRiskDistribution, getExplanation, formatINR, formatTime,
+  getRiskDistribution, getExplanation, formatINR, formatTime, exportTransactionsToCSV,
   type FilterState, type SpikeAlert, type HourlyBucket,
 } from '../services/payment/PaymentService';
 import { useCustomer } from '../context/CustomerContext';
@@ -43,7 +43,7 @@ const CHANNEL_COLORS: Record<Channel, string> = {
 };
 
 const DEFAULT_FILTER: FilterState = {
-  volumeRanges: ['100–1K'],
+  volumeRanges: [],
   amountMin: '', amountMax: '',
   transactionTypes: [], channels: [],
   authentication: 'all', riskLevel: 'all',
@@ -389,9 +389,9 @@ function OverviewTab({
   }, [filteredTxns, tableTab, spikeHours]);
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {/* Metric cards */}
-      <div className="grid grid-cols-5 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {[
           { label: 'Total Transactions', value: metrics.totalTransactions.toLocaleString(), sub: '+12.6% vs yesterday', icon: Activity, color: 'text-[#557CFF]', bg: 'bg-blue-50' },
           { label: 'Total Amount', value: formatINR(metrics.totalAmount), sub: '+18.3% vs yesterday', icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50' },
@@ -399,47 +399,52 @@ function OverviewTab({
           { label: 'Spike Alerts', value: String(metrics.spikeAlertCount), sub: 'View Details', icon: Zap, color: 'text-amber-600', bg: 'bg-amber-50', isLink: true },
           { label: 'Blocked Transactions', value: String(metrics.blockedCount), sub: '+2 vs yesterday', icon: ShieldAlert, color: 'text-rose-600', bg: 'bg-rose-50' },
         ].map((m, i) => (
-          <div key={i} className="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm">
-            <div className="flex items-center gap-2 mb-2">
-              <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${m.bg}`}>
-                <m.icon size={14} className={m.color}/>
+          <div key={i} className="bg-white rounded-2xl border border-gray-200/90 p-5 shadow-2xs hover:shadow-xs transition-shadow">
+            <div className="flex items-center gap-2 mb-2.5">
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${m.bg}`}>
+                <m.icon size={16} className={m.color}/>
               </div>
-              <span className="text-[11px] font-medium text-gray-500">{m.label}</span>
+              <span className="text-xs font-semibold text-gray-500">{m.label}</span>
             </div>
-            <div className="text-[20px] font-black text-gray-900">{m.value}</div>
-            <div className={`text-[11px] mt-0.5 ${m.isLink ? 'text-[#557CFF] cursor-pointer hover:underline' : 'text-gray-400'}`}>{m.sub}</div>
+            <div className="text-2xl lg:text-3xl font-black text-gray-900 tracking-tight">{m.value}</div>
+            <div className={`text-xs font-medium mt-1 ${m.isLink ? 'text-[#557CFF] cursor-pointer hover:underline' : 'text-gray-400'}`}>{m.sub}</div>
           </div>
         ))}
       </div>
 
       {/* Charts row */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Spike graph */}
-        <div className="col-span-2 bg-white rounded-2xl border border-gray-200 shadow-sm p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="text-[13.5px] font-bold text-gray-800">Transaction Volume Over Time</div>
-            <div className="flex items-center gap-1">
-              {['1H','6H','1D','7D'].map(t => (
-                <button key={t} className={`px-2 py-1 text-[11px] rounded font-medium ${t === '1D' ? 'bg-[#557CFF] text-white' : 'text-gray-500 hover:bg-gray-100'}`}>{t}</button>
-              ))}
+        <div className="lg:col-span-8 bg-white rounded-2xl border border-gray-200/90 shadow-2xs p-5 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <h3 className="text-sm font-bold text-gray-900">Transaction Volume Over Time</h3>
+                <p className="text-xs text-gray-400 mt-0.5">Real-time payment throughput and deviation against baseline</p>
+              </div>
+              <div className="flex items-center gap-1 bg-gray-50 p-1 rounded-xl border border-gray-100">
+                {['1H','6H','1D','7D'].map(t => (
+                  <button key={t} className={`px-2.5 py-1 text-xs rounded-lg font-bold transition-colors cursor-pointer ${t === '1D' ? 'bg-[#557CFF] text-white shadow-2xs' : 'text-gray-500 hover:bg-gray-100'}`}>{t}</button>
+                ))}
+              </div>
+            </div>
+            <div className="flex items-center gap-4 mb-4 text-xs">
+              <div className="flex items-center gap-1.5"><div className="w-5 h-1 bg-[#557CFF] rounded-full"/><span className="text-gray-600 font-medium">Actual Transactions</span></div>
+              <div className="flex items-center gap-1.5"><div className="w-5 h-0.5 bg-gray-400 border-dashed border-t-2"/><span className="text-gray-500 font-medium">Baseline (Expected)</span></div>
+              <div className="flex items-center gap-1.5"><div className="w-3.5 h-3 bg-rose-200 rounded-sm opacity-80"/><span className="text-gray-500 font-medium">Spike Range</span></div>
             </div>
           </div>
-          <div className="flex items-center gap-4 mb-3 text-[11px]">
-            <div className="flex items-center gap-1.5"><div className="w-6 h-0.5 bg-[#557CFF]"/><span className="text-gray-500">Actual Transactions</span></div>
-            <div className="flex items-center gap-1.5"><div className="w-6 h-0.5 bg-gray-400 border-dashed border-t-2"/><span className="text-gray-500">Baseline (Expected)</span></div>
-            <div className="flex items-center gap-1.5"><div className="w-4 h-3 bg-rose-200 rounded-sm opacity-70"/><span className="text-gray-500">Spike Range</span></div>
-          </div>
-          <ResponsiveContainer width="100%" height={200}>
-            <ComposedChart data={hourlyData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
+          <ResponsiveContainer width="100%" height={260}>
+            <ComposedChart data={hourlyData} margin={{ top: 5, right: 10, left: -15, bottom: 5 }}>
               <defs>
                 <linearGradient id="spikeGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#fca5a5" stopOpacity={0.5}/>
+                  <stop offset="5%" stopColor="#fca5a5" stopOpacity={0.6}/>
                   <stop offset="95%" stopColor="#fca5a5" stopOpacity={0.05}/>
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false}/>
-              <XAxis dataKey="hour" tick={{ fontSize: 10, fill: '#94a3b8' }} tickLine={false} interval={3}/>
-              <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} tickLine={false} axisLine={false}/>
+              <XAxis dataKey="hour" tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} interval={2}/>
+              <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false}/>
               <RTooltip content={<SpikeTooltip/>}/>
               {/* Spike shading area */}
               <Area type="monotone" dataKey="spikeHigh" stroke="none" fill="url(#spikeGrad)" dot={false} activeDot={false} isAnimationActive={false}/>
@@ -447,35 +452,38 @@ function OverviewTab({
               {/* Baseline dashed line */}
               <Line type="monotone" dataKey="baseline" stroke="#94a3b8" strokeWidth={1.5} strokeDasharray="5 4" dot={false} activeDot={false}/>
               {/* Actual line */}
-              <Line type="monotone" dataKey="actual" stroke="#557CFF" strokeWidth={2.5} dot={false} activeDot={{ r: 4, fill: '#557CFF' }}/>
+              <Line type="monotone" dataKey="actual" stroke="#557CFF" strokeWidth={2.5} dot={false} activeDot={{ r: 5, fill: '#557CFF' }}/>
             </ComposedChart>
           </ResponsiveContainer>
         </div>
 
         {/* Channel donut */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4">
-          <div className="text-[13.5px] font-bold text-gray-800 mb-3">Transactions by Channel</div>
-          <ResponsiveContainer width="100%" height={160}>
+        <div className="lg:col-span-4 bg-white rounded-2xl border border-gray-200/90 shadow-2xs p-5 flex flex-col justify-between">
+          <div>
+            <div className="text-sm font-bold text-gray-900 mb-1">Transactions by Channel</div>
+            <p className="text-xs text-gray-400 mb-3">Volume distribution across payment rails</p>
+          </div>
+          <ResponsiveContainer width="100%" height={180}>
             <PieChart>
-              <Pie data={channelData} dataKey="count" nameKey="channel" cx="40%" cy="50%" innerRadius={48} outerRadius={72}>
+              <Pie data={channelData} dataKey="count" nameKey="channel" cx="50%" cy="50%" innerRadius={50} outerRadius={78}>
                 {channelData.map(d => <Cell key={d.channel} fill={CHANNEL_COLORS[d.channel]}/>)}
               </Pie>
-              <text x="40%" y="50%" textAnchor="middle" dominantBaseline="middle" className="text-[13px]" fontSize={12} fontWeight="700" fill="#1e293b">
+              <text x="50%" y="47%" textAnchor="middle" dominantBaseline="middle" className="text-sm" fontSize={14} fontWeight="800" fill="#1e293b">
                 {filteredTxns.length.toLocaleString()}
               </text>
-              <text x="40%" y="58%" textAnchor="middle" dominantBaseline="middle" fontSize={9} fill="#94a3b8">Total</text>
+              <text x="50%" y="58%" textAnchor="middle" dominantBaseline="middle" fontSize={10} fontWeight="600" fill="#94a3b8">Total Txns</text>
               <RTooltip formatter={(val: unknown, name: unknown) => [`${val} (${channelData.find(c=>c.channel===name)?.pct}%)`, String(name)]}/>  
             </PieChart>
           </ResponsiveContainer>
-          <div className="space-y-1.5 mt-1">
+          <div className="space-y-2 mt-2 pt-2 border-t border-gray-100">
             {channelData.filter(d => d.count > 0).map(d => (
-              <div key={d.channel} className="flex items-center justify-between text-[11.5px]">
-                <div className="flex items-center gap-1.5">
+              <div key={d.channel} className="flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: d.color }}/>
-                  <span className="text-gray-600">{d.channel}</span>
+                  <span className="text-gray-700 font-medium">{d.channel}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="font-semibold text-gray-800">{d.count.toLocaleString()}</span>
+                  <span className="font-bold text-gray-900">{d.count.toLocaleString()}</span>
                   <span className="text-gray-400">({d.pct}%)</span>
                 </div>
               </div>
@@ -505,8 +513,14 @@ function OverviewTab({
                 </button>
               ))}
             </div>
-            <button className="flex items-center gap-1.5 text-[12px] text-gray-500 hover:text-gray-700 border border-gray-200 px-2.5 py-1.5 rounded-lg bg-white">
-              <Download size={13}/> Export
+            <button
+              onClick={() => {
+                exportTransactionsToCSV(tableTxns);
+                showToast(`Exported ${tableTxns.length} transactions to CSV`);
+              }}
+              className="flex items-center gap-1.5 text-[12px] font-semibold text-gray-700 hover:text-gray-900 border border-gray-200 px-3 py-1.5 rounded-lg bg-white hover:bg-gray-50 transition-colors shadow-2xs cursor-pointer"
+            >
+              <Download size={13}/> Export CSV
             </button>
           </div>
           <TransactionTable txns={tableTxns} onSelect={onSelectTransaction} spikeHours={spikeHours}/>
@@ -1273,13 +1287,21 @@ export const Payment: React.FC = () => {
   const spikes = useMemo(() => detectSpikes(hourlyData), [hourlyData]);
   const spikeHours = useMemo(() => new Set(spikes.map(s => s.spikeHour)), [spikes]);
 
+  const handleFilterChange = (changes: Partial<FilterState>) => {
+    setPendingFilters(f => {
+      const next = { ...f, ...changes };
+      setAppliedFilters(next);
+      return next;
+    });
+  };
+
   const handleApply = useCallback(() => {
     setIsAnalyzing(true);
     setTimeout(() => {
       setAppliedFilters({ ...pendingFilters });
       setIsAnalyzing(false);
       showToast(`Filters applied — ${filterTransactions(ALL_TRANSACTIONS, pendingFilters).length} txns matching`);
-    }, 300);
+    }, 250);
   }, [pendingFilters]);
 
   const handleClear = useCallback(() => {
@@ -1316,8 +1338,8 @@ export const Payment: React.FC = () => {
 
   return (
     <div
-      className="flex -m-8 bg-[#F7F8F7] overflow-hidden relative"
-      style={{ height: 'calc(100vh)', fontFamily: 'Inter, ui-sans-serif, system-ui, -apple-system, sans-serif' }}
+      className="flex w-full bg-[#F7F8F7] overflow-hidden relative rounded-2xl border border-slate-200/80 shadow-2xs"
+      style={{ height: 'calc(100vh - 5.5rem)', fontFamily: 'Inter, ui-sans-serif, system-ui, -apple-system, sans-serif' }}
     >
       {/* Toast Alert Notification */}
       {toastMessage && (
@@ -1330,7 +1352,7 @@ export const Payment: React.FC = () => {
       {/* Filters Sidebar */}
       <FilterSidebar
         filters={pendingFilters}
-        onFilterChange={p => setPendingFilters(f => ({ ...f, ...p }))}
+        onFilterChange={handleFilterChange}
         onApply={handleApply}
         onClear={handleClear}
         onSaveSegment={() => setIsSaveModalOpen(true)}
@@ -1357,8 +1379,18 @@ export const Payment: React.FC = () => {
               <ChevronDown size={14} className="text-gray-400" />
             </div>
             <button
+              onClick={() => {
+                exportTransactionsToCSV(filteredTxns);
+                showToast(`Exported ${filteredTxns.length} transactions to CSV`);
+              }}
+              className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 border border-gray-200 rounded-xl px-3.5 py-2 bg-white hover:bg-gray-50 transition-colors shadow-2xs cursor-pointer"
+            >
+              <Download size={14} className="text-gray-500" />
+              <span>Export CSV</span>
+            </button>
+            <button
               onClick={() => setIsSaveModalOpen(true)}
-              className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 border border-gray-200 rounded-xl px-3.5 py-2 bg-white hover:bg-gray-50 transition-colors shadow-2xs"
+              className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 border border-gray-200 rounded-xl px-3.5 py-2 bg-white hover:bg-gray-50 transition-colors shadow-2xs cursor-pointer"
             >
               <Save size={14} className="text-gray-500" />
               <span>Save View</span>

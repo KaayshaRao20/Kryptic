@@ -218,7 +218,7 @@ export const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 max-w-[1600px] mx-auto pb-12 text-slate-800 antialiased font-sans">
+    <div className="w-full max-w-none space-y-6 pb-12 text-slate-800 antialiased font-sans px-0">
       {/* Toast Notification Banner */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 bg-slate-900/95 backdrop-blur-md text-white text-xs font-semibold px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-2.5 animate-in fade-in slide-in-from-bottom-5 border border-slate-700/80">
@@ -679,30 +679,30 @@ export const Dashboard: React.FC = () => {
         </div>
 
         {/* Interactive Visual Network Topology Canvas */}
-        <div className="bg-slate-900 rounded-2xl p-6 relative overflow-hidden text-white min-h-[380px] flex flex-col justify-between shadow-inner">
+        <div className="bg-slate-50/80 rounded-2xl p-6 relative overflow-hidden text-slate-800 min-h-[360px] flex flex-col justify-between border border-slate-200/90 shadow-2xs">
           {/* Network Grid Overlay Background */}
-          <div className="absolute inset-0 bg-[radial-gradient(#334155_1px,transparent_1px)] [background-size:20px_20px] opacity-40 pointer-events-none" />
+          <div className="absolute inset-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:20px_20px] opacity-60 pointer-events-none" />
 
           {/* Canvas Top Bar */}
-          <div className="relative z-10 flex items-center justify-between text-xs border-b border-slate-800/80 pb-3">
+          <div className="relative z-10 flex items-center justify-between text-xs border-b border-slate-200/80 pb-3">
             <div className="flex items-center gap-3">
-              <span className="font-mono text-slate-400 font-bold uppercase tracking-wider text-[10px]">
-                Target: <span className="text-white">{custProfile.name}</span>
+              <span className="font-mono text-slate-500 font-bold uppercase tracking-wider text-[10px]">
+                Target: <span className="text-slate-900 font-bold">{custProfile.name}</span>
               </span>
-              <span className="text-slate-700">|</span>
-              <span className="font-mono text-slate-400 font-bold uppercase tracking-wider text-[10px]">
-                Active Pattern: <span className="text-amber-400">{SCENARIOS.find(s => s.key === activeScenario)?.label}</span>
+              <span className="text-slate-300">|</span>
+              <span className="font-mono text-slate-500 font-bold uppercase tracking-wider text-[10px]">
+                Active Pattern: <span className="text-amber-600 font-bold">{SCENARIOS.find(s => s.key === activeScenario)?.label}</span>
               </span>
             </div>
 
             <div className="flex items-center gap-3 text-[11px]">
-              <span className="flex items-center gap-1.5 text-emerald-400">
+              <span className="flex items-center gap-1.5 text-emerald-700 font-semibold">
                 <span className="w-2 h-2 rounded-full bg-emerald-500" /> Healthy
               </span>
-              <span className="flex items-center gap-1.5 text-amber-400">
+              <span className="flex items-center gap-1.5 text-amber-700 font-semibold">
                 <span className="w-2 h-2 rounded-full bg-amber-500" /> Warning
               </span>
-              <span className="flex items-center gap-1.5 text-rose-400">
+              <span className="flex items-center gap-1.5 text-rose-700 font-semibold">
                 <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" /> Anomalous / Attack Target
               </span>
             </div>
@@ -718,12 +718,12 @@ export const Dashboard: React.FC = () => {
                   key={node.key}
                   onClick={() => handleNodeClick(node)}
                   className={cn(
-                    "relative bg-slate-800/90 border rounded-2xl p-3.5 text-center flex flex-col justify-between cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-xl group select-none",
+                    "relative bg-white border rounded-2xl p-3.5 text-center flex flex-col justify-between cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-md group select-none shadow-2xs",
                     isAnomalous
-                      ? "border-rose-500/80 bg-gradient-to-b from-rose-950/40 to-slate-800/90 ring-2 ring-rose-500/30"
+                      ? "border-rose-400 bg-rose-50/70 ring-2 ring-rose-200"
                       : isWarning
-                      ? "border-amber-500/80 bg-gradient-to-b from-amber-950/40 to-slate-800/90"
-                      : "border-slate-700/80 hover:border-blue-500/60"
+                      ? "border-amber-400 bg-amber-50/70 ring-2 ring-amber-200"
+                      : "border-slate-200/90 hover:border-blue-500/80"
                   )}
                 >
                   {/* Top Status & Pulsing Beacon */}
@@ -739,21 +739,21 @@ export const Dashboard: React.FC = () => {
                   </div>
 
                   {/* Node Name */}
-                  <h4 className="text-xs font-bold text-white group-hover:text-blue-400 transition-colors leading-tight min-h-[28px] flex items-center justify-center">
+                  <h4 className="text-xs font-bold text-slate-900 group-hover:text-blue-600 transition-colors leading-tight min-h-[28px] flex items-center justify-center">
                     {node.name}
                   </h4>
 
                   {/* Node Telemetry Details */}
-                  <div className="mt-3 space-y-1 text-[10px] font-mono border-t border-slate-700/60 pt-2">
-                    <div className="flex justify-between text-slate-400">
+                  <div className="mt-3 space-y-1 text-[10px] font-mono border-t border-slate-100 pt-2">
+                    <div className="flex justify-between text-slate-500">
                       <span>TPS</span>
-                      <span className="text-white font-bold">{node.tps.toFixed(1)}K</span>
+                      <span className="text-slate-900 font-bold">{node.tps.toFixed(1)}K</span>
                     </div>
-                    <div className="flex justify-between text-slate-400">
+                    <div className="flex justify-between text-slate-500">
                       <span>Risk</span>
                       <span className={cn(
                         "font-black",
-                        isAnomalous ? "text-rose-400" : isWarning ? "text-amber-400" : "text-emerald-400"
+                        isAnomalous ? "text-rose-600" : isWarning ? "text-amber-600" : "text-emerald-600"
                       )}>
                         {node.risk.toFixed(1)}%
                       </span>
@@ -761,7 +761,7 @@ export const Dashboard: React.FC = () => {
                   </div>
 
                   {/* Hover Inspect Tooltip */}
-                  <div className="mt-2 text-[9px] text-blue-400 font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="mt-2 text-[9px] text-blue-600 font-bold opacity-0 group-hover:opacity-100 transition-opacity">
                     Click to Inspect →
                   </div>
                 </div>
@@ -770,18 +770,18 @@ export const Dashboard: React.FC = () => {
           </div>
 
           {/* Canvas Bottom Live Data Stream Bar */}
-          <div className="relative z-10 border-t border-slate-800/80 pt-3 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
-            <div className="flex items-center gap-4 text-[11px] font-mono text-slate-400">
-              <span>Detection Rate: <strong className="text-emerald-400">96.4%</strong></span>
-              <span>Avg Latency: <strong className="text-white">185ms</strong></span>
-              <span>False Positives: <strong className="text-slate-300">0.8%</strong></span>
+          <div className="relative z-10 border-t border-slate-200/80 pt-3 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-4 text-[11px] font-mono text-slate-600 font-medium">
+              <span>Detection Rate: <strong className="text-emerald-700 font-bold">96.4%</strong></span>
+              <span>Avg Latency: <strong className="text-slate-900 font-bold">185ms</strong></span>
+              <span>False Positives: <strong className="text-slate-700 font-bold">0.8%</strong></span>
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-[11px] text-slate-400">Simulating live payment traffic...</span>
+              <span className="text-[11px] text-slate-500">Simulating live payment traffic...</span>
               <button
                 onClick={() => navigate(`/customer/${custId}/twin`)}
-                className="px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white font-bold text-[11px] rounded-lg transition-colors cursor-pointer"
+                className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] rounded-xl transition-colors cursor-pointer shadow-2xs"
               >
                 Inspect in 3D Twin Engine
               </button>

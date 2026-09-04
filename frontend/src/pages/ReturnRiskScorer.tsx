@@ -137,7 +137,7 @@ export const ReturnRiskScorer: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 pb-12 text-slate-800 antialiased font-sans">
+    <div className="w-full max-w-none space-y-6 pb-12 text-slate-800 antialiased font-sans px-0">
       {/* ─── Header ─── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -152,59 +152,67 @@ export const ReturnRiskScorer: React.FC = () => {
             Predicts and mitigates delivery refusals, wardrobing fraud, and Cash-on-Delivery (COD) loss before shipping.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <span className="text-xs font-semibold text-slate-400 mr-1">Quick Presets:</span>
           <button
             onClick={() => loadPreset('high_cod')}
-            className="px-3 py-1 rounded-xl border border-rose-200 bg-rose-50 text-xs font-semibold text-rose-700 hover:bg-rose-100 transition-colors shadow-2xs cursor-pointer"
+            className="px-3 py-1.5 rounded-xl border border-rose-200 bg-rose-50 text-xs font-semibold text-rose-700 hover:bg-rose-100 transition-colors shadow-2xs cursor-pointer"
           >
             High COD Risk
           </button>
           <button
             onClick={() => loadPreset('safe_upi')}
-            className="px-3 py-1 rounded-xl border border-emerald-200 bg-emerald-50 text-xs font-semibold text-emerald-700 hover:bg-emerald-100 transition-colors shadow-2xs cursor-pointer"
+            className="px-3 py-1.5 rounded-xl border border-emerald-200 bg-emerald-50 text-xs font-semibold text-emerald-700 hover:bg-emerald-100 transition-colors shadow-2xs cursor-pointer"
           >
             Prepaid Safe
           </button>
           <button
             onClick={() => loadPreset('serial_returner')}
-            className="px-3 py-1 rounded-xl border border-purple-200 bg-purple-50 text-xs font-semibold text-purple-700 hover:bg-purple-100 transition-colors shadow-2xs cursor-pointer"
+            className="px-3 py-1.5 rounded-xl border border-purple-200 bg-purple-50 text-xs font-semibold text-purple-700 hover:bg-purple-100 transition-colors shadow-2xs cursor-pointer"
           >
             Serial Abuse
+          </button>
+          <button
+            onClick={loadData}
+            disabled={loading}
+            className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer inline-flex items-center gap-1.5"
+          >
+            <RefreshCw className={cn("w-3.5 h-3.5", loading && "animate-spin")} />
+            Sync Orders
           </button>
         </div>
       </div>
 
       {/* ─── Metric Cards ─── */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-2xs">
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-4.5 shadow-2xs">
           <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block">Estimated RTO Loss Saved</span>
-          <div className="text-2xl font-bold text-emerald-600 mt-1 font-mono tracking-tight">
+          <div className="text-2xl font-black text-emerald-600 mt-1 font-mono tracking-tight">
             ₹{(metrics?.estimated_rto_losses_prevented_inr ?? 49690).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
           </div>
           <p className="text-[11px] text-slate-400 font-medium mt-1">Courier forward & reverse freight saved</p>
         </div>
 
-        <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-2xs">
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-4.5 shadow-2xs">
           <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block">RTO Reduction Rate</span>
-          <div className="text-2xl font-bold text-blue-600 mt-1 font-mono tracking-tight flex items-center justify-between">
+          <div className="text-2xl font-black text-blue-600 mt-1 font-mono tracking-tight flex items-center justify-between">
             <span>{metrics?.rto_reduction_rate_pct ?? 42.8}%</span>
             <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 font-semibold border border-blue-200">AI Shield</span>
           </div>
           <p className="text-[11px] text-slate-400 font-medium mt-1">Via automated COD-to-UPI incentives</p>
         </div>
 
-        <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-2xs">
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-4.5 shadow-2xs">
           <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block">COD Share in Orders</span>
-          <div className="text-2xl font-bold text-amber-600 mt-1 font-mono tracking-tight">
+          <div className="text-2xl font-black text-amber-600 mt-1 font-mono tracking-tight">
             {metrics?.cod_share_pct ?? 64.2}%
           </div>
           <p className="text-[11px] text-slate-400 font-medium mt-1">Baseline high-friction payment rail</p>
         </div>
 
-        <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-2xs">
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-4.5 shadow-2xs">
           <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block">High Risk RTO Flags</span>
-          <div className="text-2xl font-bold text-rose-600 mt-1 font-mono tracking-tight">
+          <div className="text-2xl font-black text-rose-600 mt-1 font-mono tracking-tight">
             {metrics?.high_risk_rto_count ?? 86} Orders
           </div>
           <p className="text-[11px] text-slate-400 font-medium mt-1">Intercepted before warehouse dispatch</p>
@@ -437,6 +445,100 @@ export const ReturnRiskScorer: React.FC = () => {
               <p className="text-sm font-bold text-slate-700">Submit an order form to generate the RTO risk analysis</p>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* ─── Full-Width Evaluated Orders & Logistics RTO Decision Table ─── */}
+      <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-2xs space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div>
+            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <ShoppingBag className="w-4 h-4 text-blue-600" />
+              <span>Recent Evaluated Orders & Logistics RTO Decision Log</span>
+            </h3>
+            <p className="text-xs text-slate-400 font-medium mt-0.5">
+              Live RTO interception audit across fulfillment centres and carrier delivery nodes
+            </p>
+          </div>
+          <span className="text-xs font-bold text-slate-500 font-mono bg-slate-100 px-2.5 py-1 rounded-lg">
+            {recentOrders.length} Evaluated Orders
+          </span>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr className="bg-slate-50/80 border-b border-slate-200 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                <th className="py-3 px-4">Order ID</th>
+                <th className="py-3 px-4">Customer & Location</th>
+                <th className="py-3 px-4">Category</th>
+                <th className="py-3 px-4">Value</th>
+                <th className="py-3 px-4">Payment Rail</th>
+                <th className="py-3 px-4">RTO Score</th>
+                <th className="py-3 px-4">Risk Tier</th>
+                <th className="py-3 px-4">Recommended Mitigation</th>
+                <th className="py-3 px-4 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+              {recentOrders.map((ord) => (
+                <tr
+                  key={ord.order_id}
+                  onClick={() => setActiveResult(ord)}
+                  className="hover:bg-blue-50/30 transition-colors cursor-pointer group"
+                >
+                  <td className="py-3 px-4 font-mono font-bold text-blue-600 group-hover:underline">
+                    {ord.order_id}
+                  </td>
+                  <td className="py-3 px-4">
+                    <div className="font-semibold text-slate-900">{customerName}</div>
+                    <div className="text-[11px] text-slate-400">{city}, {state} ({pinCode})</div>
+                  </td>
+                  <td className="py-3 px-4 text-slate-600">{productCategory}</td>
+                  <td className="py-3 px-4 font-mono font-bold text-slate-900">
+                    ₹{(orderValue).toLocaleString('en-IN')}
+                  </td>
+                  <td className="py-3 px-4">
+                    <span className={cn(
+                      "px-2 py-0.5 rounded text-[10px] font-bold uppercase",
+                      paymentMethod === 'COD' ? "bg-amber-50 text-amber-700 border border-amber-200" : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                    )}>
+                      {paymentMethod}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4">
+                    <span className="font-mono font-bold text-slate-900">{ord.risk_score}</span>
+                    <span className="text-slate-400 text-[10px]">/100</span>
+                  </td>
+                  <td className="py-3 px-4">
+                    <span className={cn(
+                      "px-2 py-0.5 rounded-full text-[10px] font-bold uppercase border",
+                      ord.risk_tier === 'CRITICAL' && "bg-rose-50 text-rose-700 border-rose-200",
+                      ord.risk_tier === 'HIGH' && "bg-amber-50 text-amber-700 border-amber-200",
+                      ord.risk_tier === 'MEDIUM' && "bg-sky-50 text-sky-700 border-sky-200",
+                      ord.risk_tier === 'LOW' && "bg-emerald-50 text-emerald-700 border-emerald-200"
+                    )}>
+                      {ord.risk_tier}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4 max-w-xs truncate text-[11px] text-slate-600 font-semibold">
+                    {ord.recommended_action}: {ord.action_description}
+                  </td>
+                  <td className="py-3 px-4 text-right">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveResult(ord);
+                      }}
+                      className="px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold transition-colors cursor-pointer"
+                    >
+                      Load Dossier
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

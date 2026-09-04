@@ -69,16 +69,16 @@ export const Sidebar: React.FC = () => {
       badgeColor: 'bg-amber-500 text-white font-bold'
     },
     {
-      name: 'Risk Simulation Lab',
-      path: '/twin',
-      icon: Activity,
+      name: 'Model Evaluation',
+      path: '/system/evaluation',
+      icon: BarChart2,
       badgeText: null,
       badgeColor: ''
     },
     {
       name: 'Reports',
       path: '/admin/reports',
-      icon: BarChart2,
+      icon: Activity,
       badgeText: null,
       badgeColor: ''
     },
@@ -89,13 +89,6 @@ export const Sidebar: React.FC = () => {
       name: 'Razorpay Settings',
       path: '/connectors',
       icon: Sliders,
-      badgeText: null,
-      badgeColor: ''
-    },
-    {
-      name: 'Merchant Store',
-      path: '/admin/dashboard',
-      icon: Store,
       badgeText: null,
       badgeColor: ''
     },
@@ -274,18 +267,18 @@ export const Sidebar: React.FC = () => {
             "flex items-center gap-2.5 px-1 pt-1",
             isCollapsed && "justify-center"
           )}
-          title="Manav Nagpal (manav.nagpal2005@gmail.com)"
+          title="Kaaysha Rao (kaaysha.rao@gmail.com)"
         >
-          <div className="w-8 h-8 rounded-full bg-slate-900 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
-            M
+          <div className="w-8 h-8 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
+            K
           </div>
           {!isCollapsed && (
             <div className="leading-tight min-w-0 flex-1">
               <span className="text-xs font-bold text-slate-900 truncate block">
-                Manav Nagpal
+                Kaaysha Rao
               </span>
               <span className="text-[10px] text-slate-400 truncate block">
-                manav.nagpal2005@gmail.com
+                kaaysha.rao@gmail.com
               </span>
             </div>
           )}

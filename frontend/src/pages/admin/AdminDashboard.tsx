@@ -528,8 +528,8 @@ export const AdminDashboard: React.FC = () => {
 
                     {/* Customer Contact */}
                     <td className="py-3 whitespace-nowrap">
-                      <div className="font-semibold text-slate-900">{p.email || 'manav.nagpal2005@gmail.com'}</div>
-                      <div className="text-[10px] text-slate-400 font-mono">{p.contact || '+919896817707'}</div>
+                      <div className="font-semibold text-slate-900">{p.email || 'kaaysha.rao@gmail.com'}</div>
+                      <div className="text-[10px] text-slate-400 font-mono">{p.contact || '+91 98968 17707'}</div>
                     </td>
 
                     {/* Amount */}

@@ -104,6 +104,24 @@ export const ChargebackResponder: React.FC = () => {
     }
   };
 
+  const handleDownloadLetter = () => {
+    if (!selectedDispute) return;
+    const letterText = defensePack
+      ? defensePack.representation_letter
+      : `FORMAL CHARGEBACK REPRESENTMENT LETTER\n==================================================\nDispute Reference: ${selectedDispute.id}\nPayment Reference ID: ${selectedDispute.payment_id}\nDisputed Amount: ₹${selectedDispute.amount.toLocaleString('en-IN')}\nCustomer Name: ${selectedDispute.customer_name}\nCarrier Tracking: ${selectedDispute.delivery_proof.carrier} (${selectedDispute.delivery_proof.tracking_id || 'BD849201944IN'})\n3DS Authentication: 3DS2_AUTHENTICATED (FULL LIABILITY SHIFT)\n\nWe formally submit this rebuttal confirming 3DS2 cardholder verification and confirmed carrier electronic Proof of Delivery (e-POD).\nTransaction settled via Razorpay Payments Network. Liability shifts to the card issuing bank under Card Scheme Regulations (Visa/Mastercard 3DS2 Liability Shift).\n\nMerchant: Kryptic Partner Merchant\nDate: ${new Date().toLocaleDateString('en-IN')}`;
+
+    const blob = new Blob([letterText], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Merchant_Representation_Letter_${selectedDispute.id}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    setSuccessMessage(`Formal Representation Letter for ${selectedDispute.id} downloaded successfully!`);
+  };
+
   const handleDownloadPDF = () => {
     if (!selectedDispute) return;
 
@@ -175,8 +193,9 @@ export const ChargebackResponder: React.FC = () => {
   };
 
   const handleCopyLetter = () => {
-    if (!defensePack) return;
-    navigator.clipboard.writeText(defensePack.representation_letter);
+    const textToCopy = defensePack ? defensePack.representation_letter : (selectedDispute ? `FORMAL CHARGEBACK REPRESENTMENT LETTER\nDispute Reference: ${selectedDispute.id}\nPayment ID: ${selectedDispute.payment_id}\nAmount: ₹${selectedDispute.amount}` : '');
+    if (!textToCopy) return;
+    navigator.clipboard.writeText(textToCopy);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -191,7 +210,7 @@ export const ChargebackResponder: React.FC = () => {
   const actionRequiredCount = disputes.filter(d => d.status === 'action_required').length;
 
   return (
-    <div className="space-y-6 pb-12 text-slate-800 antialiased font-sans">
+    <div className="w-full max-w-none space-y-6 pb-12 text-slate-800 antialiased font-sans px-0">
       {/* ─── Page Header ─── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -207,15 +226,26 @@ export const ChargebackResponder: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5 flex-wrap">
           {selectedDispute && (
-            <button
-              onClick={handleDownloadPDF}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-300 bg-white text-xs font-bold text-slate-700 hover:bg-slate-50 shadow-2xs transition-all cursor-pointer"
-            >
-              <Download className="w-4 h-4 text-blue-600" />
-              <span>Download Evidence Dossier (PDF)</span>
-            </button>
+            <>
+              <button
+                onClick={handleDownloadLetter}
+                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-blue-200 bg-blue-50/80 text-xs font-bold text-blue-700 hover:bg-blue-100 shadow-2xs transition-all cursor-pointer"
+                title="Download Representation Letter as .txt file"
+              >
+                <Download className="w-4 h-4 text-blue-600" />
+                <span>Download Letter (.txt)</span>
+              </button>
+
+              <button
+                onClick={handleDownloadPDF}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-300 bg-white text-xs font-bold text-slate-700 hover:bg-slate-50 shadow-2xs transition-all cursor-pointer"
+              >
+                <Printer className="w-4 h-4 text-slate-600" />
+                <span>Download Dossier (PDF)</span>
+              </button>
+            </>
           )}
 
           <button
@@ -266,9 +296,9 @@ export const ChargebackResponder: React.FC = () => {
       </div>
 
       {/* ─── Main Content Grid: Left Queue / Right Defense Workspace ─── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-12 lg:grid-cols-12 gap-6">
         {/* Left Col: Disputes Queue */}
-        <div className="lg:col-span-5 space-y-3">
+        <div className="xl:col-span-4 lg:col-span-5 space-y-3">
           <div className="flex items-center justify-between bg-white p-3.5 border border-slate-200/80 rounded-2xl shadow-2xs">
             <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">Disputes Queue</span>
             <div className="flex gap-1">
@@ -345,7 +375,7 @@ export const ChargebackResponder: React.FC = () => {
         </div>
 
         {/* Right Col: Selected Dispute Workspace & Gemini Auto-Responder */}
-        <div className="lg:col-span-7 space-y-4">
+        <div className="xl:col-span-8 lg:col-span-7 space-y-4">
           {selectedDispute ? (
             <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-2xs space-y-6">
               {/* Header with Clean Reason Formatting */}
@@ -356,6 +386,11 @@ export const ChargebackResponder: React.FC = () => {
                       Razorpay Dispute #{selectedDispute.id}
                     </span>
                     <span className="text-xs text-slate-400 font-mono">Txn: {selectedDispute.payment_id}</span>
+                    {selectedDispute.defense_submitted && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                        <Check className="w-3 h-3 text-emerald-600" /> Defense Registered
+                      </span>
+                    )}
                   </div>
 
                   {/* Clean Amount & Reason Code Line */}
@@ -422,13 +457,22 @@ export const ChargebackResponder: React.FC = () => {
                     <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
                     <span>{successMessage}</span>
                   </div>
-                  <button
-                    onClick={handleDownloadPDF}
-                    className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg font-bold text-xs hover:bg-emerald-700 transition-colors shadow-2xs shrink-0 flex items-center gap-1"
-                  >
-                    <Download className="w-3.5 h-3.5" />
-                    <span>Get PDF</span>
-                  </button>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      onClick={handleDownloadLetter}
+                      className="px-3 py-1.5 bg-blue-600 text-white rounded-lg font-bold text-xs hover:bg-blue-700 transition-colors shadow-2xs flex items-center gap-1 cursor-pointer"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Get .TXT</span>
+                    </button>
+                    <button
+                      onClick={handleDownloadPDF}
+                      className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg font-bold text-xs hover:bg-emerald-700 transition-colors shadow-2xs flex items-center gap-1 cursor-pointer"
+                    >
+                      <Printer className="w-3.5 h-3.5" />
+                      <span>Get PDF</span>
+                    </button>
+                  </div>
                 </div>
               )}
 
@@ -494,18 +538,27 @@ export const ChargebackResponder: React.FC = () => {
 
                   {/* Formal Representation Letter */}
                   <div className="border border-slate-200 rounded-2xl p-4 bg-white space-y-2">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
                       <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
                         <FileText className="w-4 h-4 text-slate-600" />
                         Formal Merchant Representation Letter
                       </h3>
-                      <button
-                        onClick={handleCopyLetter}
-                        className="inline-flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-700 font-bold cursor-pointer"
-                      >
-                        <Copy className="w-3.5 h-3.5" />
-                        {copied ? 'Copied!' : 'Copy Letter'}
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={handleDownloadLetter}
+                          className="inline-flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3 py-1.5 rounded-lg font-bold transition-colors cursor-pointer shadow-2xs"
+                        >
+                          <Download className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>Download Letter (.txt)</span>
+                        </button>
+                        <button
+                          onClick={handleCopyLetter}
+                          className="inline-flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-700 bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-lg font-bold transition-colors cursor-pointer"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                          {copied ? 'Copied!' : 'Copy Letter'}
+                        </button>
+                      </div>
                     </div>
                     <textarea
                       rows={10}
@@ -522,6 +575,14 @@ export const ChargebackResponder: React.FC = () => {
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
                       <button
+                        onClick={handleDownloadLetter}
+                        className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold shadow-2xs transition-all cursor-pointer"
+                      >
+                        <Download className="w-4 h-4 text-emerald-600" />
+                        <span>Download Letter</span>
+                      </button>
+
+                      <button
                         onClick={handleDownloadPDF}
                         className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold shadow-2xs transition-all cursor-pointer"
                       >
@@ -535,14 +596,14 @@ export const ChargebackResponder: React.FC = () => {
                         className={cn(
                           "inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs shadow-sm transition-all cursor-pointer text-white",
                           selectedDispute.defense_submitted
-                            ? "bg-slate-900 hover:bg-slate-800"
+                            ? "bg-emerald-700 hover:bg-emerald-800"
                             : "bg-emerald-600 hover:bg-emerald-700"
                         )}
                       >
                         {selectedDispute.defense_submitted ? (
                           <>
-                            <Check className="w-4 h-4 text-emerald-400" />
-                            <span>Defense Submitted (Click to Re-Submit)</span>
+                            <Check className="w-4 h-4 text-emerald-300" />
+                            <span>✓ Defense Submitted (Click to Re-Submit)</span>
                           </>
                         ) : submitting ? (
                           <>
