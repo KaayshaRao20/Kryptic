@@ -394,28 +394,37 @@ function AlertDetailDrawer({
         </div>
 
         {/* Actions */}
-        <div className="p-5 border-t border-gray-100 flex gap-2">
-          {alert.status !== 'RESOLVED' && alert.status !== 'INVESTIGATING' && (
-            <button
-              onClick={() => onInvestigate(alert.id)}
-              className="flex-1 py-2.5 text-sm font-semibold rounded-xl bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors"
-            >
-              Mark Investigating
-            </button>
-          )}
-          {alert.status !== 'RESOLVED' && (
-            <button
-              onClick={() => onResolve(alert.id)}
-              className="flex-1 py-2.5 text-sm font-semibold rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors"
-            >
-              ✓ Resolve
-            </button>
-          )}
-          {alert.status === 'RESOLVED' && (
-            <div className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-gray-50 rounded-xl text-sm text-gray-400">
-              <CheckCircle className="w-4 h-4" /> Resolved
-            </div>
-          )}
+        <div className="p-5 border-t border-gray-100 space-y-2">
+          <button
+            onClick={() => selectCustomer(alert.customerId, { targetPath: `/customer/${alert.customerId}/dashboard` })}
+            className="w-full py-2.5 px-4 text-xs font-bold rounded-xl bg-[#557CFF] text-white flex items-center justify-center gap-2 hover:bg-[#456BEB] transition-all shadow-md shadow-blue-200 cursor-pointer"
+          >
+            <ExternalLink className="w-4 h-4" /> Open Customer Dashboard & Twin Lab ({alert.customerId})
+          </button>
+
+          <div className="flex gap-2">
+            {alert.status !== 'RESOLVED' && alert.status !== 'INVESTIGATING' && (
+              <button
+                onClick={() => onInvestigate(alert.id)}
+                className="flex-1 py-2 text-xs font-semibold rounded-xl bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors"
+              >
+                Mark Investigating
+              </button>
+            )}
+            {alert.status !== 'RESOLVED' && (
+              <button
+                onClick={() => onResolve(alert.id)}
+                className="flex-1 py-2 text-xs font-semibold rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors"
+              >
+                ✓ Resolve
+              </button>
+            )}
+            {alert.status === 'RESOLVED' && (
+              <div className="flex-1 flex items-center justify-center gap-2 py-2 bg-gray-50 rounded-xl text-xs text-gray-400">
+                <CheckCircle className="w-4 h-4" /> Resolved
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

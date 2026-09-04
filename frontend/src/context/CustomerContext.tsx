@@ -13,6 +13,8 @@ export interface CustomerProfile {
   totalVolume: number;
   joinedDate: string;
   status: 'ACTIVE' | 'FLAGGED' | 'FROZEN';
+  location?: string;
+  defaultScenario?: 'fraud_spike' | 'coordinated' | 'velocity' | 'behavioral';
 }
 
 // Registry of realistic enterprise customers mapped to alert scenarios
@@ -28,7 +30,9 @@ export const CUSTOMER_REGISTRY: Record<string, CustomerProfile> = {
     totalTransactions: 1247,
     totalVolume: 842000,
     joinedDate: '15 Jan 2025',
-    status: 'FLAGGED'
+    status: 'FLAGGED',
+    location: 'Mumbai, India',
+    defaultScenario: 'fraud_spike'
   },
   'CUST-002': {
     id: 'CUST-002',
@@ -41,7 +45,9 @@ export const CUSTOMER_REGISTRY: Record<string, CustomerProfile> = {
     totalTransactions: 834,
     totalVolume: 328000,
     joinedDate: '02 Mar 2025',
-    status: 'FLAGGED'
+    status: 'FLAGGED',
+    location: 'Bengaluru, India',
+    defaultScenario: 'coordinated'
   },
   'CUST-2048': {
     id: 'CUST-2048',
@@ -54,7 +60,9 @@ export const CUSTOMER_REGISTRY: Record<string, CustomerProfile> = {
     totalTransactions: 412,
     totalVolume: 512000,
     joinedDate: '10 Nov 2024',
-    status: 'ACTIVE'
+    status: 'ACTIVE',
+    location: 'Singapore',
+    defaultScenario: 'velocity'
   },
   'CUST-004': {
     id: 'CUST-004',
@@ -67,7 +75,9 @@ export const CUSTOMER_REGISTRY: Record<string, CustomerProfile> = {
     totalTransactions: 289,
     totalVolume: 49500,
     joinedDate: '24 Aug 2025',
-    status: 'ACTIVE'
+    status: 'ACTIVE',
+    location: 'Chennai, India',
+    defaultScenario: 'behavioral'
   },
   'CUST-005': {
     id: 'CUST-005',
@@ -80,7 +90,9 @@ export const CUSTOMER_REGISTRY: Record<string, CustomerProfile> = {
     totalTransactions: 67,
     totalVolume: 185000,
     joinedDate: '19 Feb 2026',
-    status: 'ACTIVE'
+    status: 'ACTIVE',
+    location: 'Delhi, India',
+    defaultScenario: 'fraud_spike'
   },
   'CUST-006': {
     id: 'CUST-006',
@@ -93,7 +105,9 @@ export const CUSTOMER_REGISTRY: Record<string, CustomerProfile> = {
     totalTransactions: 523,
     totalVolume: 670000,
     joinedDate: '05 May 2025',
-    status: 'FLAGGED'
+    status: 'FLAGGED',
+    location: 'Frankfurt, Germany',
+    defaultScenario: 'coordinated'
   }
 };
 

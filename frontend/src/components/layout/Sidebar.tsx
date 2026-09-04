@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   Home,
@@ -9,10 +9,13 @@ import {
   Sliders,
   Store,
   LogOut,
+  ChevronLeft,
   ChevronRight,
   Activity,
   Bell,
-  Zap
+  Zap,
+  PanelLeftClose,
+  PanelLeftOpen
 } from 'lucide-react';
 import { useEnvironment } from '../../context/EnvironmentContext';
 import { cn } from '../../lib/utils';
@@ -20,6 +23,7 @@ import { cn } from '../../lib/utils';
 export const Sidebar: React.FC = () => {
   const navigate = useNavigate();
   const { isLive } = useEnvironment();
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const mainNavItems = [
     {
@@ -98,42 +102,66 @@ export const Sidebar: React.FC = () => {
   ];
 
   return (
-    <aside className="w-64 bg-white border-r border-slate-200/90 h-screen flex flex-col pt-6 px-4 select-none shrink-0 font-sans z-30">
-      {/* ─── Brand Logo & Header ─── */}
-      <div
-        className="flex items-center gap-3 px-2 mb-8 cursor-pointer group"
-        onClick={() => navigate('/admin/dashboard')}
-      >
-        <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
-          <Shield className="w-5 h-5 text-white fill-white/20" />
+    <aside
+      className={cn(
+        "bg-white border-r border-slate-200/90 h-screen flex flex-col pt-5 select-none shrink-0 font-sans z-30 transition-all duration-300 relative",
+        isCollapsed ? "w-16 px-2" : "w-64 px-4"
+      )}
+    >
+      {/* ─── Brand Logo & Header + Toggle Button ─── */}
+      <div className="flex items-center justify-between mb-6 px-1">
+        <div
+          className="flex items-center gap-3 cursor-pointer group min-w-0"
+          onClick={() => navigate('/admin/dashboard')}
+          title="Kryptic Risk Management"
+        >
+          <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 shrink-0">
+            <Shield className="w-5 h-5 text-white fill-white/20" />
+          </div>
+          {!isCollapsed && (
+            <div className="leading-tight truncate">
+              <span className="text-base font-black tracking-tight text-slate-900 block group-hover:text-blue-600 transition-colors">
+                Kryptic
+              </span>
+              <span className="text-[11px] text-slate-400 font-medium block">
+                Risk Management
+              </span>
+            </div>
+          )}
         </div>
-        <div className="leading-tight">
-          <span className="text-base font-black tracking-tight text-slate-900 block group-hover:text-blue-600 transition-colors">
-            Kryptic
-          </span>
-          <span className="text-[11px] text-slate-400 font-medium block">
-            Risk Management
-          </span>
-        </div>
+
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer shrink-0"
+          title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {isCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
+        </button>
       </div>
 
-      {/* ─── MAIN Section ─── */}
-      <div className="px-2 mb-2">
-        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-          MAIN
-        </span>
+      {/* ─── MAIN Section Header ─── */}
+      <div className={cn("mb-2 px-2", isCollapsed && "text-center px-0")}>
+        {isCollapsed ? (
+          <div className="h-px bg-slate-100 my-2" />
+        ) : (
+          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+            MAIN
+          </span>
+        )}
       </div>
 
-      <nav className="space-y-1 mb-6">
+      <nav className="space-y-1 mb-6 flex-1 overflow-y-auto">
         {mainNavItems.map((item) => {
           const Icon = item.icon;
           return (
             <NavLink
               key={item.name}
               to={item.path}
+              title={isCollapsed ? item.name : undefined}
               className={({ isActive }) =>
                 cn(
-                  "flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 cursor-pointer group",
+                  "flex items-center rounded-xl text-xs font-semibold transition-all duration-150 cursor-pointer group relative",
+                  isCollapsed ? "justify-center p-2.5" : "justify-between px-3.5 py-2.5",
                   isActive
                     ? "bg-blue-50 text-blue-600 shadow-2xs font-bold"
                     : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
@@ -142,17 +170,18 @@ export const Sidebar: React.FC = () => {
             >
               {({ isActive }) => (
                 <>
-                  <div className="flex items-center gap-3 min-w-0">
+                  <div className={cn("flex items-center gap-3 min-w-0", isCollapsed && "justify-center")}>
                     <Icon className={cn(
-                      "w-4 h-4 shrink-0 transition-colors",
+                      "w-4.5 h-4.5 shrink-0 transition-colors",
                       isActive ? "text-blue-600" : "text-slate-400 group-hover:text-slate-600"
                     )} />
-                    <span className="truncate">{item.name}</span>
+                    {!isCollapsed && <span className="truncate">{item.name}</span>}
                   </div>
 
                   {item.badgeText && (
                     <span className={cn(
-                      "w-4 h-4 rounded-full text-[10px] flex items-center justify-center shadow-xs",
+                      "rounded-full text-[10px] flex items-center justify-center shadow-xs shrink-0",
+                      isCollapsed ? "absolute -top-0.5 -right-0.5 w-3.5 h-3.5 text-[9px]" : "w-4 h-4",
                       item.badgeColor
                     )}>
                       {item.badgeText}
@@ -163,34 +192,38 @@ export const Sidebar: React.FC = () => {
             </NavLink>
           );
         })}
-      </nav>
 
-      {/* ─── CONFIGURATION Section ─── */}
-      <div className="px-2 mb-2">
-        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-          CONFIGURATION
-        </span>
-      </div>
+        {/* ─── CONFIGURATION Section ─── */}
+        <div className={cn("mt-4 mb-2 px-2", isCollapsed && "text-center px-0")}>
+          {isCollapsed ? (
+            <div className="h-px bg-slate-100 my-2" />
+          ) : (
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+              CONFIGURATION
+            </span>
+          )}
+        </div>
 
-      <nav className="space-y-1">
         {configNavItems.map((item) => {
           const Icon = item.icon;
           return (
             <NavLink
               key={item.name}
               to={item.path}
+              title={isCollapsed ? item.name : undefined}
               className={({ isActive }) =>
                 cn(
-                  "flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 cursor-pointer group",
+                  "flex items-center rounded-xl text-xs font-semibold transition-all duration-150 cursor-pointer group",
+                  isCollapsed ? "justify-center p-2.5" : "justify-between px-3.5 py-2.5",
                   isActive && item.name === 'Razorpay Settings'
                     ? "bg-blue-50 text-blue-600 shadow-2xs font-bold"
                     : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                 )
               }
             >
-              <div className="flex items-center gap-3 min-w-0">
-                <Icon className="w-4 h-4 shrink-0 text-slate-400 group-hover:text-slate-600" />
-                <span className="truncate">{item.name}</span>
+              <div className={cn("flex items-center gap-3 min-w-0", isCollapsed && "justify-center")}>
+                <Icon className="w-4.5 h-4.5 shrink-0 text-slate-400 group-hover:text-slate-600" />
+                {!isCollapsed && <span className="truncate">{item.name}</span>}
               </div>
             </NavLink>
           );
@@ -198,54 +231,80 @@ export const Sidebar: React.FC = () => {
       </nav>
 
       {/* ─── Footer: Mode Status + User Profile + Log Out ─── */}
-      <div className="mt-auto pt-4 border-t border-slate-100 space-y-3 pb-2">
+      <div className="mt-auto pt-3 border-t border-slate-100 space-y-2.5 pb-2">
         {/* Sandbox / Live indicator card */}
-        <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-          <div className="flex items-center gap-2">
+        {!isCollapsed ? (
+          <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+            <div className="flex items-center gap-2">
+              <span className={cn(
+                "w-2 h-2 rounded-full",
+                isLive ? "bg-emerald-500 animate-pulse" : "bg-emerald-500"
+              )} />
+              <span className="text-xs font-bold text-slate-800">
+                {isLive ? 'Live Mode' : 'Sandbox Mode'}
+              </span>
+            </div>
+            <p className="text-[10px] text-slate-400 mt-0.5">
+              {isLive ? 'Connected to live merchant gateway.' : 'Simulating transactions safely.'}
+            </p>
+            <button
+              onClick={() => navigate('/connectors')}
+              className="text-[11px] font-bold text-blue-600 hover:text-blue-700 mt-1 inline-flex items-center gap-1 cursor-pointer"
+            >
+              <span>Manage</span>
+              <span>→</span>
+            </button>
+          </div>
+        ) : (
+          <div
+            className="flex items-center justify-center p-2 rounded-xl bg-slate-50 border border-slate-100 cursor-pointer"
+            onClick={() => navigate('/connectors')}
+            title={isLive ? 'Live Mode' : 'Sandbox Mode'}
+          >
             <span className={cn(
-              "w-2 h-2 rounded-full",
+              "w-2.5 h-2.5 rounded-full",
               isLive ? "bg-emerald-500 animate-pulse" : "bg-emerald-500"
             )} />
-            <span className="text-xs font-bold text-slate-800">
-              {isLive ? 'Live Mode' : 'Sandbox Mode'}
-            </span>
           </div>
-          <p className="text-[10px] text-slate-400 mt-0.5">
-            {isLive ? 'Connected to live merchant gateway.' : 'Simulating transactions safely.'}
-          </p>
-          <button
-            onClick={() => navigate('/connectors')}
-            className="text-[11px] font-bold text-blue-600 hover:text-blue-700 mt-1 inline-flex items-center gap-1 cursor-pointer"
-          >
-            <span>Manage</span>
-            <span>→</span>
-          </button>
-        </div>
+        )}
 
         {/* User Profile Card */}
-        <div className="flex items-center gap-3 px-1 pt-1">
-          <div className="w-8 h-8 rounded-full bg-slate-900 text-white font-bold text-xs flex items-center justify-center shrink-0">
+        <div
+          className={cn(
+            "flex items-center gap-2.5 px-1 pt-1",
+            isCollapsed && "justify-center"
+          )}
+          title="Manav Nagpal (manav.nagpal2005@gmail.com)"
+        >
+          <div className="w-8 h-8 rounded-full bg-slate-900 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
             M
           </div>
-          <div className="leading-tight min-w-0 flex-1">
-            <span className="text-xs font-bold text-slate-900 truncate block">
-              Manav Nagpal
-            </span>
-            <span className="text-[10px] text-slate-400 truncate block">
-              manav.nagpal2005@gmail.com
-            </span>
-          </div>
+          {!isCollapsed && (
+            <div className="leading-tight min-w-0 flex-1">
+              <span className="text-xs font-bold text-slate-900 truncate block">
+                Manav Nagpal
+              </span>
+              <span className="text-[10px] text-slate-400 truncate block">
+                manav.nagpal2005@gmail.com
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Log Out */}
         <button
           onClick={() => navigate('/')}
-          className="w-full flex items-center gap-2 px-2 py-1.5 text-xs font-medium text-slate-500 hover:text-slate-800 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer"
+          title={isCollapsed ? "Log out" : undefined}
+          className={cn(
+            "w-full flex items-center gap-2 py-1.5 text-xs font-medium text-slate-500 hover:text-slate-800 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer",
+            isCollapsed ? "justify-center px-1" : "px-2"
+          )}
         >
-          <LogOut className="w-3.5 h-3.5 text-slate-400" />
-          <span>Log out</span>
+          <LogOut className="w-4 h-4 text-slate-400 shrink-0" />
+          {!isCollapsed && <span>Log out</span>}
         </button>
       </div>
     </aside>
   );
 };
+

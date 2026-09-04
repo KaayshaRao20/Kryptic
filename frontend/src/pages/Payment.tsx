@@ -788,156 +788,466 @@ function RiskTab({ filteredTxns, onSelectTransaction }: { filteredTxns: Transact
 
 // ─── Filters Sidebar ─────────────────────────────────────────────
 function FilterSidebar({
-  filters, onFilterChange, onApply, onClear,
+  filters,
+  onFilterChange,
+  onApply,
+  onClear,
+  onSaveSegment,
 }: {
   filters: FilterState;
   onFilterChange: (f: Partial<FilterState>) => void;
   onApply: () => void;
   onClear: () => void;
+  onSaveSegment: () => void;
 }) {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
   const toggleArr = (key: keyof FilterState, val: string) => {
-    const arr = filters[key] as string[];
+    const arr = (filters[key] as string[]) || [];
     const next = arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val];
     onFilterChange({ [key]: next });
   };
 
+  // Compute active filters count
+  const activeCount = useMemo(() => {
+    let count = 0;
+    if (filters.volumeRanges && filters.volumeRanges.length > 0) count += filters.volumeRanges.length;
+    if (filters.amountMin || filters.amountMax) count += 1;
+    if (filters.transactionTypes && filters.transactionTypes.length > 0) count += filters.transactionTypes.length;
+    if (filters.channels && filters.channels.length > 0) count += filters.channels.length;
+    if (filters.authentication && filters.authentication !== 'all') count += 1;
+    if (filters.riskLevel && filters.riskLevel !== 'all') count += 1;
+    if (filters.cluster && filters.cluster !== 'all') count += 1;
+    if (filters.search) count += 1;
+    if (filters.datePreset && filters.datePreset !== 'all') count += 1;
+    return count;
+  }, [filters]);
+
+  if (isCollapsed) {
+    return (
+      <aside className="w-14 flex-shrink-0 bg-white border-r border-gray-200 flex flex-col items-center py-4 space-y-5 transition-all duration-300 z-20">
+        <button
+          onClick={() => setIsCollapsed(false)}
+          className="p-2 rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+          title="Expand Filter Sidebar"
+        >
+          <ChevronRight size={18} />
+        </button>
+
+        <div className="relative">
+          <button
+            onClick={() => setIsCollapsed(false)}
+            className="p-2.5 rounded-xl bg-blue-50 text-[#557CFF] hover:bg-blue-100 transition-colors"
+            title={`Filters Active (${activeCount})`}
+          >
+            <Filter size={18} />
+          </button>
+          {activeCount > 0 && (
+            <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#557CFF] text-white text-[9.5px] font-bold flex items-center justify-center">
+              {activeCount}
+            </span>
+          )}
+        </div>
+
+        <button
+          onClick={onApply}
+          className="p-2.5 rounded-xl bg-[#557CFF] text-white hover:bg-[#4268e8] shadow-sm transition-colors"
+          title="Apply Filters"
+        >
+          <Activity size={18} />
+        </button>
+
+        <button
+          onClick={onClear}
+          className="p-2.5 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+          title="Reset All Filters"
+        >
+          <X size={18} />
+        </button>
+
+        <button
+          onClick={onSaveSegment}
+          className="p-2.5 rounded-xl bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors"
+          title="Save as Segment"
+        >
+          <Save size={18} />
+        </button>
+      </aside>
+    );
+  }
+
   return (
-    <aside className="w-52 flex-shrink-0 bg-white border-r border-gray-200 flex flex-col overflow-y-auto" style={{ minHeight: '100%' }}>
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-        <div className="flex items-center gap-1.5 text-[13px] font-bold text-gray-800"><Filter size={13}/> Filters &amp; Segmentation</div>
-        <button onClick={onClear} className="text-[11px] text-[#557CFF] font-medium hover:underline">Clear All</button>
+    <aside className="w-64 flex-shrink-0 bg-white border-r border-gray-200 flex flex-col overflow-y-auto transition-all duration-300 z-20" style={{ minHeight: '100%' }}>
+      {/* Sidebar Header */}
+      <div className="flex items-center justify-between px-4 py-3.5 border-b border-gray-100 bg-white sticky top-0 z-10">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-lg bg-blue-50 text-[#557CFF] flex items-center justify-center">
+            <Filter size={14} />
+          </div>
+          <span className="text-xs font-bold text-gray-900 tracking-tight">Filters &amp; Segmentation</span>
+          {activeCount > 0 && (
+            <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-[#557CFF]">
+              {activeCount}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={onClear}
+            className="text-xs text-[#557CFF] font-semibold hover:underline px-1.5 py-1"
+            title="Reset all filters"
+          >
+            Clear All
+          </button>
+          <button
+            onClick={() => setIsCollapsed(true)}
+            className="p-1 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+            title="Collapse Filter Sidebar"
+          >
+            <ChevronLeft size={16} />
+          </button>
+        </div>
       </div>
 
-      <div className="p-4 space-y-5 flex-1 overflow-y-auto">
-        {/* Date range */}
+      <div className="p-4 space-y-4 flex-1 overflow-y-auto">
+        {/* Date Range Selector */}
         <div>
-          <div className="text-[11px] font-semibold text-gray-500 mb-1.5">Date Range</div>
-          <div className="flex items-center gap-1.5 border border-gray-200 rounded-lg px-2.5 py-2 text-[12px] text-gray-700 bg-gray-50">
-            <Calendar size={12} className="text-gray-400"/>
-            01 Sep 2026 - 01 Sep 2026
+          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+            Date Range
+          </label>
+          <div className="relative">
+            <select
+              value={filters.datePreset || '01sep'}
+              onChange={e => onFilterChange({ datePreset: e.target.value })}
+              className="w-full appearance-none border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-800 bg-gray-50/60 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#557CFF]/20 focus:border-[#557CFF] pr-8 transition-colors"
+            >
+              <option value="01sep">01 Sep 2026 (Today)</option>
+              <option value="last7">Last 7 Days (26 Aug - 01 Sep)</option>
+              <option value="last30">Last 30 Days (Aug 2026)</option>
+              <option value="all">All Historical Dates</option>
+            </select>
+            <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
           </div>
         </div>
 
-        {/* Volume */}
+        {/* Volume per day */}
         <div>
-          <div className="text-[11px] font-semibold text-gray-500 mb-1.5">Transaction Volume (per day)</div>
-          <div className="flex flex-wrap gap-1">
-            {VOLUME_RANGES.map(r => (
-              <button key={r} onClick={() => toggleArr('volumeRanges', r)}
-                className={`px-2 py-1 rounded text-[10.5px] font-medium border transition-colors ${filters.volumeRanges.includes(r) ? 'bg-[#557CFF] text-white border-[#557CFF]' : 'bg-white text-gray-500 border-gray-200 hover:border-gray-300'}`}
-              >{r}</button>
-            ))}
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">
+              Txn Volume (per day)
+            </label>
+            {filters.volumeRanges && filters.volumeRanges.length > 0 && (
+              <button
+                onClick={() => onFilterChange({ volumeRanges: [] })}
+                className="text-[10px] text-gray-400 hover:text-gray-600"
+              >
+                Reset
+              </button>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {VOLUME_RANGES.map(r => {
+              const isSelected = (filters.volumeRanges || []).includes(r);
+              return (
+                <button
+                  key={r}
+                  onClick={() => toggleArr('volumeRanges', r)}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all duration-150 ${
+                    isSelected
+                      ? 'bg-[#557CFF] text-white border-[#557CFF] shadow-xs'
+                      : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  {r}
+                </button>
+              );
+            })}
           </div>
         </div>
 
         {/* Amount range */}
         <div>
-          <div className="text-[11px] font-semibold text-gray-500 mb-1.5">Amount Range (₹)</div>
+          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+            Amount Range (₹)
+          </label>
           <div className="grid grid-cols-2 gap-2">
-            <input type="number" placeholder="Min" value={filters.amountMin}
+            <input
+              type="number"
+              placeholder="Min ₹"
+              value={filters.amountMin}
               onChange={e => onFilterChange({ amountMin: e.target.value })}
-              className="border border-gray-200 rounded-lg px-2 py-1.5 text-[12px] w-full focus:outline-none focus:ring-1 focus:ring-[#557CFF]/30"
+              className="border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#557CFF]/20 focus:border-[#557CFF] w-full"
             />
-            <input type="number" placeholder="Max" value={filters.amountMax}
+            <input
+              type="number"
+              placeholder="Max ₹"
+              value={filters.amountMax}
               onChange={e => onFilterChange({ amountMax: e.target.value })}
-              className="border border-gray-200 rounded-lg px-2 py-1.5 text-[12px] w-full focus:outline-none focus:ring-1 focus:ring-[#557CFF]/30"
+              className="border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#557CFF]/20 focus:border-[#557CFF] w-full"
             />
           </div>
         </div>
 
         {/* Transaction type */}
         <div>
-          <div className="text-[11px] font-semibold text-gray-500 mb-1.5">Transaction Type</div>
+          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+            Transaction Type
+          </label>
           <div className="relative">
-            <select className="w-full appearance-none border border-gray-200 rounded-lg px-2.5 py-2 text-[12px] text-gray-700 focus:outline-none pr-6"
-              value={filters.transactionTypes[0] || ''}
+            <select
+              className="w-full appearance-none border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#557CFF]/20 focus:border-[#557CFF] pr-8"
+              value={(filters.transactionTypes && filters.transactionTypes[0]) || ''}
               onChange={e => onFilterChange({ transactionTypes: e.target.value ? [e.target.value] : [] })}
             >
               <option value="">All Types</option>
-              {TXN_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+              {TXN_TYPES.map(t => (
+                <option key={t} value={t}>{t}</option>
+              ))}
             </select>
-            <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"/>
+            <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
           </div>
         </div>
 
-        {/* Channel */}
+        {/* Payment Channel */}
         <div>
-          <div className="text-[11px] font-semibold text-gray-500 mb-1.5">Payment Channel</div>
+          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+            Payment Channel
+          </label>
           <div className="relative">
-            <select className="w-full appearance-none border border-gray-200 rounded-lg px-2.5 py-2 text-[12px] text-gray-700 focus:outline-none pr-6"
-              value={filters.channels[0] || ''}
+            <select
+              className="w-full appearance-none border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#557CFF]/20 focus:border-[#557CFF] pr-8"
+              value={(filters.channels && filters.channels[0]) || ''}
               onChange={e => onFilterChange({ channels: e.target.value ? [e.target.value] : [] })}
             >
               <option value="">All Channels</option>
-              {CHANNELS.map(c => <option key={c} value={c}>{c}</option>)}
+              {CHANNELS.map(c => (
+                <option key={c} value={c}>{c}</option>
+              ))}
             </select>
-            <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"/>
+            <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
           </div>
         </div>
 
         {/* Authentication */}
         <div>
-          <div className="text-[11px] font-semibold text-gray-500 mb-1.5">Authentication</div>
-          <div className="flex gap-1 flex-wrap">
-            {['all','OTP Based','Non-OTP','3DS'].map(a => (
-              <button key={a} onClick={() => onFilterChange({ authentication: a })}
-                className={`px-2 py-1 rounded text-[10.5px] font-medium border transition-colors ${filters.authentication === a ? 'bg-[#557CFF] text-white border-[#557CFF]' : 'bg-white text-gray-500 border-gray-200 hover:border-gray-300'}`}
-              >{a === 'all' ? 'All' : a}</button>
-            ))}
+          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+            Authentication Method
+          </label>
+          <div className="flex gap-1.5 flex-wrap">
+            {['all', 'OTP Based', 'Non-OTP', '3DS'].map(a => {
+              const isSelected = filters.authentication === a;
+              return (
+                <button
+                  key={a}
+                  onClick={() => onFilterChange({ authentication: a })}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all duration-150 ${
+                    isSelected
+                      ? 'bg-[#557CFF] text-white border-[#557CFF] shadow-xs'
+                      : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  {a === 'all' ? 'All' : a}
+                </button>
+              );
+            })}
           </div>
         </div>
 
         {/* Risk level */}
         <div>
-          <div className="text-[11px] font-semibold text-gray-500 mb-1.5">Risk Level</div>
-          <div className="flex gap-1">
-            {['all','Low','Medium','High'].map(r => (
-              <button key={r} onClick={() => onFilterChange({ riskLevel: r })}
-                className={`px-2 py-1 rounded text-[10.5px] font-medium border transition-colors ${filters.riskLevel === r ? 'bg-[#557CFF] text-white border-[#557CFF]' : 'bg-white text-gray-500 border-gray-200 hover:border-gray-300'}`}
-              >{r === 'all' ? 'All' : r}</button>
-            ))}
+          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+            Risk Level
+          </label>
+          <div className="grid grid-cols-4 gap-1">
+            {['all', 'Low', 'Medium', 'High'].map(r => {
+              const isSelected = filters.riskLevel === r;
+              const activeColor =
+                r === 'High' ? 'bg-rose-500 text-white border-rose-500' :
+                r === 'Medium' ? 'bg-amber-500 text-white border-amber-500' :
+                r === 'Low' ? 'bg-emerald-500 text-white border-emerald-500' :
+                'bg-[#557CFF] text-white border-[#557CFF]';
+              return (
+                <button
+                  key={r}
+                  onClick={() => onFilterChange({ riskLevel: r })}
+                  className={`py-1 rounded-lg text-xs font-semibold border text-center transition-all duration-150 ${
+                    isSelected
+                      ? `${activeColor} shadow-xs`
+                      : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  {r === 'all' ? 'All' : r}
+                </button>
+              );
+            })}
           </div>
         </div>
 
         {/* Cluster */}
         <div>
-          <div className="text-[11px] font-semibold text-gray-500 mb-1.5">Clusters</div>
+          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+            Risk Cluster
+          </label>
           <div className="relative">
-            <select className="w-full appearance-none border border-gray-200 rounded-lg px-2.5 py-2 text-[12px] text-gray-700 focus:outline-none pr-6"
+            <select
+              className="w-full appearance-none border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#557CFF]/20 focus:border-[#557CFF] pr-8"
               value={filters.cluster}
               onChange={e => onFilterChange({ cluster: e.target.value })}
             >
               <option value="all">All Clusters</option>
-              {CLUSTER_LABELS.map(c => <option key={c} value={c}>{c}</option>)}
+              {CLUSTER_LABELS.map(c => (
+                <option key={c} value={c}>{c}</option>
+              ))}
             </select>
-            <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"/>
+            <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
           </div>
         </div>
 
         {/* Search */}
         <div>
-          <div className="text-[11px] font-semibold text-gray-500 mb-1.5">Search</div>
+          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+            Keyword Search
+          </label>
           <div className="relative">
-            <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400"/>
-            <input type="text" placeholder="Search by Txn ID, Entity ID, or Location..."
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Txn ID, Entity, Location..."
               value={filters.search}
               onChange={e => onFilterChange({ search: e.target.value })}
-              className="w-full border border-gray-200 rounded-lg pl-7 pr-2 py-1.5 text-[12px] focus:outline-none focus:ring-1 focus:ring-[#557CFF]/30"
+              className="w-full border border-gray-200 rounded-xl pl-8 pr-3 py-2 text-xs font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#557CFF]/20 focus:border-[#557CFF]"
             />
           </div>
         </div>
       </div>
 
-      {/* Footer buttons */}
-      <div className="p-4 border-t border-gray-100 space-y-2">
-        <button onClick={onApply}
-          className="w-full py-2.5 rounded-xl bg-[#557CFF] hover:bg-[#4268e8] text-white font-semibold text-[13px] transition-colors"
-        >Apply Filters</button>
-        <button className="w-full text-[12px] text-[#557CFF] font-medium hover:underline flex items-center justify-center gap-1">
-          <Save size={12}/> Save as Segment
+      {/* Footer action buttons */}
+      <div className="p-4 border-t border-gray-100 bg-white space-y-2 sticky bottom-0">
+        <button
+          onClick={onApply}
+          className="w-full py-2.5 px-4 rounded-xl bg-[#557CFF] hover:bg-[#4268e8] text-white font-bold text-xs shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 transition-all active:scale-98"
+        >
+          <Activity size={14} />
+          <span>Apply Filters</span>
+        </button>
+
+        <button
+          onClick={onSaveSegment}
+          className="w-full py-2 px-3 rounded-xl border border-blue-200 hover:border-blue-300 text-[#557CFF] hover:bg-blue-50 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
+        >
+          <Save size={13} />
+          <span>Save as Segment</span>
         </button>
       </div>
     </aside>
+  );
+}
+
+// ─── Save Segment Modal Component ────────────────────────────────
+function SaveSegmentModal({
+  isOpen,
+  onClose,
+  filters,
+  onSave,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  filters: FilterState;
+  onSave: (name: string) => void;
+}) {
+  const [name, setName] = useState('');
+
+  if (!isOpen) return null;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) return;
+    onSave(name.trim());
+    setName('');
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-xs" onClick={onClose} />
+      <div className="relative bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-md p-6 z-10 animate-in fade-in zoom-in duration-150">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-xl bg-blue-50 text-[#557CFF] flex items-center justify-center">
+              <Save size={16} />
+            </div>
+            <h3 className="text-base font-bold text-gray-900">Save Filter Segment</h3>
+          </div>
+          <button onClick={onClose} className="p-1 rounded-lg text-gray-400 hover:text-gray-700">
+            <X size={16} />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+              Segment Name
+            </label>
+            <input
+              type="text"
+              required
+              placeholder="e.g. High Risk UPI Transactions"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              className="w-full border border-gray-300 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-gray-800 focus:ring-2 focus:ring-[#557CFF]/20 focus:border-[#557CFF] outline-none"
+              autoFocus
+            />
+          </div>
+
+          <div className="p-3 bg-gray-50 border border-gray-100 rounded-xl space-y-1">
+            <span className="text-[11px] font-bold text-gray-500 uppercase block">Configured Parameters</span>
+            <div className="flex flex-wrap gap-1 mt-1">
+              {filters.riskLevel && filters.riskLevel !== 'all' && (
+                <span className="px-2 py-0.5 rounded bg-rose-100 text-rose-700 text-[11px] font-bold">
+                  Risk: {filters.riskLevel}
+                </span>
+              )}
+              {filters.channels && filters.channels.length > 0 && (
+                <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-700 text-[11px] font-bold">
+                  Channel: {filters.channels.join(', ')}
+                </span>
+              )}
+              {filters.authentication && filters.authentication !== 'all' && (
+                <span className="px-2 py-0.5 rounded bg-purple-100 text-purple-700 text-[11px] font-bold">
+                  Auth: {filters.authentication}
+                </span>
+              )}
+              {filters.cluster && filters.cluster !== 'all' && (
+                <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-700 text-[11px] font-bold">
+                  Cluster: {filters.cluster}
+                </span>
+              )}
+              {(!filters.riskLevel || filters.riskLevel === 'all') &&
+               (!filters.channels || filters.channels.length === 0) &&
+               (!filters.authentication || filters.authentication === 'all') && (
+                <span className="text-xs text-gray-500 italic">Custom Filter Criteria</span>
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-xl transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-5 py-2 text-xs font-bold text-white bg-[#557CFF] hover:bg-[#4268e8] rounded-xl shadow-md transition-colors"
+            >
+              Save Segment
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }
 
@@ -949,6 +1259,13 @@ export const Payment: React.FC = () => {
   const [appliedFilters, setAppliedFilters] = useState<FilterState>(DEFAULT_FILTER);
   const [selectedTxn, setSelectedTxn] = useState<Transaction | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3500);
+  };
 
   // Derived data (always from applied filters)
   const filteredTxns = useMemo(() => filterTransactions(ALL_TRANSACTIONS, appliedFilters), [appliedFilters]);
@@ -961,12 +1278,18 @@ export const Payment: React.FC = () => {
     setTimeout(() => {
       setAppliedFilters({ ...pendingFilters });
       setIsAnalyzing(false);
-    }, 400);
+      showToast(`Filters applied — ${filterTransactions(ALL_TRANSACTIONS, pendingFilters).length} txns matching`);
+    }, 300);
   }, [pendingFilters]);
 
   const handleClear = useCallback(() => {
     setPendingFilters(DEFAULT_FILTER);
     setAppliedFilters(DEFAULT_FILTER);
+    showToast('Filters reset to default');
+  }, []);
+
+  const handleSaveSegment = useCallback((name: string) => {
+    showToast(`Segment "${name}" saved to segment directory!`);
   }, []);
 
   const handleSelectCluster = useCallback((label: ClusterLabel) => {
@@ -977,7 +1300,6 @@ export const Payment: React.FC = () => {
   }, [pendingFilters]);
 
   const handleSelectSpike = useCallback((_hour: number) => {
-    // Filter transactions to only the spike hour
     const next = { ...pendingFilters, search: '' };
     setPendingFilters(next);
     setAppliedFilters(next);
@@ -994,78 +1316,95 @@ export const Payment: React.FC = () => {
 
   return (
     <div
-      className="flex -m-8 bg-[#F7F8F7] overflow-hidden"
+      className="flex -m-8 bg-[#F7F8F7] overflow-hidden relative"
       style={{ height: 'calc(100vh)', fontFamily: 'Inter, ui-sans-serif, system-ui, -apple-system, sans-serif' }}
     >
+      {/* Toast Alert Notification */}
+      {toastMessage && (
+        <div className="absolute top-4 right-6 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-xl border border-slate-700 text-xs font-bold flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
+          <Zap size={14} className="text-amber-400 fill-amber-400" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
       {/* Filters Sidebar */}
       <FilterSidebar
         filters={pendingFilters}
         onFilterChange={p => setPendingFilters(f => ({ ...f, ...p }))}
         onApply={handleApply}
         onClear={handleClear}
+        onSaveSegment={() => setIsSaveModalOpen(true)}
       />
 
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="bg-white border-b border-gray-200 px-5 py-3 flex items-center justify-between flex-shrink-0">
+        <div className="bg-white border-b border-gray-200 px-6 py-3.5 flex items-center justify-between flex-shrink-0">
           <div>
-            <h1 className="text-[18px] font-bold text-gray-900">
+            <h1 className="text-xl font-bold text-gray-900 tracking-tight">
               {selectedCustomer ? `${selectedCustomer.name} • Payment Intelligence` : 'Payment Intelligence'}
             </h1>
-            <p className="text-[12px] text-gray-400">
+            <p className="text-xs text-gray-500 font-medium mt-0.5">
               {selectedCustomer
                 ? `Isolated payment stream and risk clustering for ${selectedCustomer.id} (${selectedCustomer.accountType})`
-                : 'Monitor, detect spikes, and analyze payment behavior in real-time'}
+                : 'Monitor real-time payment behavior, spike alerts, and intelligent risk clusters'}
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5 text-[12.5px] text-gray-600 border border-gray-200 rounded-lg px-3 py-1.5 bg-white">
-              <Calendar size={13} className="text-gray-400"/> 01 Sep 2026 - 01 Sep 2026 <ChevronDown size={12}/>
+            <div className="flex items-center gap-2 text-xs font-semibold text-gray-700 border border-gray-200 rounded-xl px-3.5 py-2 bg-gray-50/70">
+              <Calendar size={14} className="text-gray-400" />
+              <span>01 Sep 2026 - 01 Sep 2026</span>
+              <ChevronDown size={14} className="text-gray-400" />
             </div>
-            <button className="flex items-center gap-1.5 text-[12.5px] text-gray-600 border border-gray-200 rounded-lg px-3 py-1.5 bg-white hover:bg-gray-50">
-              <Save size={13}/> Save View
+            <button
+              onClick={() => setIsSaveModalOpen(true)}
+              className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 border border-gray-200 rounded-xl px-3.5 py-2 bg-white hover:bg-gray-50 transition-colors shadow-2xs"
+            >
+              <Save size={14} className="text-gray-500" />
+              <span>Save View</span>
             </button>
             <button
               onClick={handleApply}
               disabled={isAnalyzing}
-              className="flex items-center gap-1.5 text-[13px] font-semibold text-white bg-[#557CFF] hover:bg-[#4268e8] rounded-lg px-4 py-1.5 transition-colors disabled:opacity-60"
+              className="flex items-center gap-2 text-xs font-bold text-white bg-[#557CFF] hover:bg-[#4268e8] rounded-xl px-4 py-2 transition-all shadow-md shadow-blue-500/20 disabled:opacity-60 cursor-pointer"
             >
-              {isAnalyzing ? <Loader2 size={14} className="animate-spin"/> : <Activity size={14}/>}
-              Analyze
+              {isAnalyzing ? <Loader2 size={15} className="animate-spin" /> : <Activity size={15} />}
+              <span>Analyze</span>
             </button>
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="bg-white border-b border-gray-200 px-5 flex-shrink-0">
-          <div className="flex items-center">
+        {/* Navigation Tabs */}
+        <div className="bg-white border-b border-gray-200 px-6 flex-shrink-0">
+          <div className="flex items-center gap-1">
             {TABS.map(tab => {
               const Icon = tab.icon;
+              const isSelected = activeTab === tab.key;
               return (
                 <button
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key)}
-                  className={`flex items-center gap-1.5 px-4 py-2.5 text-[13px] font-medium border-b-2 transition-colors whitespace-nowrap ${
-                    activeTab === tab.key
-                      ? 'text-[#557CFF] border-[#557CFF]'
-                      : 'text-gray-500 border-transparent hover:text-gray-700'
+                  className={`flex items-center gap-2 px-4 py-3 text-xs font-bold border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+                    isSelected
+                      ? 'text-[#557CFF] border-[#557CFF] bg-blue-50/40'
+                      : 'text-gray-500 border-transparent hover:text-gray-800 hover:bg-gray-50'
                   }`}
                 >
-                  <Icon size={13}/> {tab.label}
+                  <Icon size={14} className={isSelected ? 'text-[#557CFF]' : 'text-gray-400'} />
+                  <span>{tab.label}</span>
                 </button>
               );
             })}
           </div>
         </div>
 
-        {/* Scrollable content */}
-        <div className="flex-1 overflow-y-auto p-5">
+        {/* Scrollable Main View Area */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {isAnalyzing && (
-            <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/10">
-              <div className="bg-white rounded-2xl shadow-xl px-8 py-6 flex items-center gap-3">
-                <Loader2 size={20} className="animate-spin text-[#557CFF]"/>
-                <span className="text-[13.5px] font-semibold text-gray-700">Analyzing payment data…</span>
+            <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/10 backdrop-blur-2xs">
+              <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 px-8 py-6 flex items-center gap-3">
+                <Loader2 size={22} className="animate-spin text-[#557CFF]" />
+                <span className="text-sm font-bold text-gray-800">Analyzing live payment data…</span>
               </div>
             </div>
           )}
@@ -1082,14 +1421,16 @@ export const Payment: React.FC = () => {
             />
           )}
           {activeTab === 'transactions' && (
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-              <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-                <div className="text-[13.5px] font-bold text-gray-800">All Transactions ({filteredTxns.length.toLocaleString()})</div>
-                <button className="flex items-center gap-1.5 text-[12px] text-gray-500 border border-gray-200 px-2.5 py-1.5 rounded-lg hover:bg-gray-50">
-                  <Download size={13}/> Export
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-xs overflow-hidden">
+              <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                <div className="text-sm font-bold text-gray-900">
+                  Filtered Transactions ({filteredTxns.length.toLocaleString()})
+                </div>
+                <button className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 border border-gray-200 px-3 py-1.5 rounded-xl hover:bg-gray-50 transition-colors">
+                  <Download size={14} /> Export CSV
                 </button>
               </div>
-              <TransactionTable txns={filteredTxns} onSelect={setSelectedTxn} spikeHours={spikeHours}/>
+              <TransactionTable txns={filteredTxns} onSelect={setSelectedTxn} spikeHours={spikeHours} />
             </div>
           )}
           {activeTab === 'clusters' && (
@@ -1098,14 +1439,22 @@ export const Payment: React.FC = () => {
               onSelectCluster={handleSelectCluster}
             />
           )}
-          {activeTab === 'otp' && <OTPTab filteredTxns={filteredTxns}/>}
-          {activeTab === 'risk' && <RiskTab filteredTxns={filteredTxns} onSelectTransaction={setSelectedTxn}/>}
+          {activeTab === 'otp' && <OTPTab filteredTxns={filteredTxns} />}
+          {activeTab === 'risk' && <RiskTab filteredTxns={filteredTxns} onSelectTransaction={setSelectedTxn} />}
         </div>
       </div>
 
-      {/* Transaction detail modal */}
+      {/* Save Segment Modal */}
+      <SaveSegmentModal
+        isOpen={isSaveModalOpen}
+        onClose={() => setIsSaveModalOpen(false)}
+        filters={pendingFilters}
+        onSave={handleSaveSegment}
+      />
+
+      {/* Transaction Detail Modal */}
       {selectedTxn && (
-        <TransactionDetail txn={selectedTxn} onClose={() => setSelectedTxn(null)}/>
+        <TransactionDetail txn={selectedTxn} onClose={() => setSelectedTxn(null)} />
       )}
     </div>
   );

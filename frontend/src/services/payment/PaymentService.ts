@@ -12,14 +12,15 @@ export interface FilterState {
   amountMax: string;
   transactionTypes: string[];   // empty = all
   channels: string[];           // empty = all
-  authentication: string;       // 'all' | 'OTP' | 'Non-OTP' | '3DS'
+  authentication: string;       // 'all' | 'OTP Based' | 'Non-OTP' | '3DS'
   riskLevel: string;            // 'all' | 'Low' | 'Medium' | 'High'
   cluster: string;              // 'all' or ClusterLabel
   search: string;
+  datePreset?: string;          // 'all' | '01sep' | 'last7' | 'last30'
 }
 
 export const DEFAULT_FILTER: FilterState = {
-  volumeRanges: ['100–1K'],
+  volumeRanges: [],
   amountMin: '',
   amountMax: '',
   transactionTypes: [],
@@ -28,9 +29,10 @@ export const DEFAULT_FILTER: FilterState = {
   riskLevel: 'all',
   cluster: 'all',
   search: '',
+  datePreset: 'all',
 };
 
-// Volume range buckets (entity daily transaction count proxy = txnCount)
+// Volume range buckets (entity daily transaction count proxy = txnCount / amount)
 const VOLUME_RANGE: Record<string, [number, number]> = {
   '< 100':    [0, 99],
   '100–1K':   [100, 1000],
@@ -48,8 +50,8 @@ export function filterTransactions(txns: Transaction[], f: FilterState): Transac
     // Amount
     if (t.amount < amtMin || t.amount > amtMax) return false;
 
-    // Volume range (treat amount as proxy for per-transaction volume)
-    if (f.volumeRanges.length > 0) {
+    // Volume range
+    if (f.volumeRanges && f.volumeRanges.length > 0) {
       const inRange = f.volumeRanges.some(r => {
         const [lo, hi] = VOLUME_RANGE[r] ?? [0, Infinity];
         return t.amount >= lo && t.amount <= hi;
@@ -58,31 +60,33 @@ export function filterTransactions(txns: Transaction[], f: FilterState): Transac
     }
 
     // Transaction type
-    if (f.transactionTypes.length > 0 && !f.transactionTypes.includes(t.type)) return false;
+    if (f.transactionTypes && f.transactionTypes.length > 0 && !f.transactionTypes.includes(t.type)) return false;
 
     // Channel
-    if (f.channels.length > 0 && !f.channels.includes(t.channel)) return false;
+    if (f.channels && f.channels.length > 0 && !f.channels.includes(t.channel)) return false;
 
     // Authentication
-    if (f.authentication !== 'all') {
+    if (f.authentication && f.authentication !== 'all') {
       if (f.authentication === 'OTP Based' && t.authentication !== 'OTP') return false;
       if (f.authentication === 'Non-OTP'   && t.authentication !== 'Non-OTP') return false;
       if (f.authentication === '3DS'        && t.authentication !== '3DS') return false;
     }
 
     // Risk level
-    if (f.riskLevel !== 'all' && t.riskLevel !== f.riskLevel) return false;
+    if (f.riskLevel && f.riskLevel !== 'all' && t.riskLevel !== f.riskLevel) return false;
 
     // Cluster
-    if (f.cluster !== 'all' && t.cluster !== f.cluster) return false;
+    if (f.cluster && f.cluster !== 'all' && t.cluster !== f.cluster) return false;
 
-    // Search (id, entityId, location)
+    // Search (id, entityId, location, type, channel)
     if (f.search) {
-      const q = f.search.toLowerCase();
+      const q = f.search.toLowerCase().trim();
       if (
         !t.id.toLowerCase().includes(q) &&
         !t.entityId.toLowerCase().includes(q) &&
-        !t.location.toLowerCase().includes(q)
+        !t.location.toLowerCase().includes(q) &&
+        !t.type.toLowerCase().includes(q) &&
+        !t.channel.toLowerCase().includes(q)
       ) return false;
     }
 

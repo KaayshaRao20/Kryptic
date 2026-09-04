@@ -23,7 +23,7 @@ export const ReturnRiskScorer: React.FC = () => {
     total_orders_evaluated: 1240,
     high_risk_rto_count: 86,
     cod_share_pct: 64.2,
-    estimated_rto_losses_prevented_inr: 48920.00,
+    estimated_rto_losses_prevented_inr: 49690.00,
     rto_reduction_rate_pct: 42.8
   });
   const [recentOrders, setRecentOrders] = useState<OrderScoreResult[]>([]);
@@ -137,38 +137,38 @@ export const ReturnRiskScorer: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-6 pb-12 text-slate-800 antialiased font-sans">
       {/* ─── Header ─── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-xs font-bold text-blue-600 uppercase tracking-widest">
-            <RotateCcw className="w-4 h-4" />
+          <div className="flex items-center gap-2 text-[11px] font-semibold text-blue-600 uppercase tracking-wider">
+            <RotateCcw className="w-3.5 h-3.5" />
             RETURN REDUCTION ENGINE • REAL-TIME RTO INTERCEPTION
           </div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight mt-1">
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight mt-1">
             Return & RTO Risk Scorer
           </h1>
-          <p className="text-sm text-slate-500 mt-0.5">
+          <p className="text-xs text-slate-500 font-medium mt-1 leading-relaxed">
             Predicts and mitigates delivery refusals, wardrobing fraud, and Cash-on-Delivery (COD) loss before shipping.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs font-bold text-slate-400 mr-1">Quick Presets:</span>
+          <span className="text-xs font-semibold text-slate-400 mr-1">Quick Presets:</span>
           <button
             onClick={() => loadPreset('high_cod')}
-            className="px-2.5 py-1.5 rounded-lg border border-rose-200 bg-rose-50 text-[11px] font-bold text-rose-700 hover:bg-rose-100 cursor-pointer"
+            className="px-3 py-1 rounded-xl border border-rose-200 bg-rose-50 text-xs font-semibold text-rose-700 hover:bg-rose-100 transition-colors shadow-2xs cursor-pointer"
           >
             High COD Risk
           </button>
           <button
             onClick={() => loadPreset('safe_upi')}
-            className="px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-emerald-50 text-[11px] font-bold text-emerald-700 hover:bg-emerald-100 cursor-pointer"
+            className="px-3 py-1 rounded-xl border border-emerald-200 bg-emerald-50 text-xs font-semibold text-emerald-700 hover:bg-emerald-100 transition-colors shadow-2xs cursor-pointer"
           >
             Prepaid Safe
           </button>
           <button
             onClick={() => loadPreset('serial_returner')}
-            className="px-2.5 py-1.5 rounded-lg border border-purple-200 bg-purple-50 text-[11px] font-bold text-purple-700 hover:bg-purple-100 cursor-pointer"
+            className="px-3 py-1 rounded-xl border border-purple-200 bg-purple-50 text-xs font-semibold text-purple-700 hover:bg-purple-100 transition-colors shadow-2xs cursor-pointer"
           >
             Serial Abuse
           </button>
@@ -178,36 +178,36 @@ export const ReturnRiskScorer: React.FC = () => {
       {/* ─── Metric Cards ─── */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-2xs">
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Estimated RTO Loss Saved</span>
-          <div className="text-2xl font-black text-emerald-600 mt-1 font-mono">
-            ₹{(metrics?.estimated_rto_losses_prevented_inr ?? 48920).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+          <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block">Estimated RTO Loss Saved</span>
+          <div className="text-2xl font-bold text-emerald-600 mt-1 font-mono tracking-tight">
+            ₹{(metrics?.estimated_rto_losses_prevented_inr ?? 49690).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
           </div>
-          <p className="text-xs text-slate-500 mt-1">Courier forward & reverse freight saved</p>
+          <p className="text-[11px] text-slate-400 font-medium mt-1">Courier forward & reverse freight saved</p>
         </div>
 
         <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-2xs">
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">RTO Reduction Rate</span>
-          <div className="text-2xl font-black text-blue-600 mt-1 flex items-center justify-between">
+          <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block">RTO Reduction Rate</span>
+          <div className="text-2xl font-bold text-blue-600 mt-1 font-mono tracking-tight flex items-center justify-between">
             <span>{metrics?.rto_reduction_rate_pct ?? 42.8}%</span>
-            <span className="text-xs px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 font-bold border border-blue-200">AI Shield</span>
+            <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 font-semibold border border-blue-200">AI Shield</span>
           </div>
-          <p className="text-xs text-slate-500 mt-1">Via automated COD-to-UPI incentives</p>
+          <p className="text-[11px] text-slate-400 font-medium mt-1">Via automated COD-to-UPI incentives</p>
         </div>
 
         <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-2xs">
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">COD Share in Orders</span>
-          <div className="text-2xl font-black text-amber-600 mt-1">
+          <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block">COD Share in Orders</span>
+          <div className="text-2xl font-bold text-amber-600 mt-1 font-mono tracking-tight">
             {metrics?.cod_share_pct ?? 64.2}%
           </div>
-          <p className="text-xs text-slate-500 mt-1">Baseline high-friction payment rail</p>
+          <p className="text-[11px] text-slate-400 font-medium mt-1">Baseline high-friction payment rail</p>
         </div>
 
         <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-2xs">
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">High Risk RTO Flags</span>
-          <div className="text-2xl font-black text-rose-600 mt-1">
+          <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block">High Risk RTO Flags</span>
+          <div className="text-2xl font-bold text-rose-600 mt-1 font-mono tracking-tight">
             {metrics?.high_risk_rto_count ?? 86} Orders
           </div>
-          <p className="text-xs text-slate-500 mt-1">Intercepted before warehouse dispatch</p>
+          <p className="text-[11px] text-slate-400 font-medium mt-1">Intercepted before warehouse dispatch</p>
         </div>
       </div>
 
@@ -216,32 +216,32 @@ export const ReturnRiskScorer: React.FC = () => {
         {/* Left Form: Incoming Order Parameters */}
         <div className="lg:col-span-6 bg-white border border-slate-200/80 rounded-2xl p-6 shadow-2xs space-y-5">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-            <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+            <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
               <ShoppingBag className="w-4 h-4 text-blue-600" />
               Order & Customer Telemetry
             </h2>
-            <span className="text-xs font-mono font-bold text-slate-400">{orderId}</span>
+            <span className="text-xs font-mono font-semibold text-slate-400">{orderId}</span>
           </div>
 
           <form onSubmit={handleScoreOrder} className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">Customer Name</label>
+                <label className="text-[11px] font-semibold text-slate-600 block mb-1.5">Customer Name</label>
                 <input
                   type="text"
                   value={customerName}
                   onChange={e => setCustomerName(e.target.value)}
-                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full px-3 py-2 text-xs font-medium text-slate-800 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:outline-none transition-all"
                   required
                 />
               </div>
               <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">Phone Number</label>
+                <label className="text-[11px] font-semibold text-slate-600 block mb-1.5">Phone Number</label>
                 <input
                   type="text"
                   value={phone}
                   onChange={e => setPhone(e.target.value)}
-                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono"
+                  className="w-full px-3 py-2 text-xs font-mono font-medium text-slate-800 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:outline-none transition-all"
                   required
                 />
               </div>
@@ -249,32 +249,32 @@ export const ReturnRiskScorer: React.FC = () => {
 
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">Delivery PIN Code</label>
+                <label className="text-[11px] font-semibold text-slate-600 block mb-1.5">Delivery PIN Code</label>
                 <input
                   type="text"
                   value={pinCode}
                   onChange={e => setPinCode(e.target.value)}
-                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono"
+                  className="w-full px-3 py-2 text-xs font-mono font-medium text-slate-800 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:outline-none transition-all"
                   required
                 />
               </div>
               <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">City</label>
+                <label className="text-[11px] font-semibold text-slate-600 block mb-1.5">City</label>
                 <input
                   type="text"
                   value={city}
                   onChange={e => setCity(e.target.value)}
-                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full px-3 py-2 text-xs font-medium text-slate-800 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:outline-none transition-all"
                   required
                 />
               </div>
               <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">Order Value (INR)</label>
+                <label className="text-[11px] font-semibold text-slate-600 block mb-1.5">Order Value (INR)</label>
                 <input
                   type="number"
                   value={orderValue}
                   onChange={e => setOrderValue(Number(e.target.value))}
-                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono font-bold"
+                  className="w-full px-3 py-2 text-xs font-mono font-semibold text-slate-900 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:outline-none transition-all"
                   required
                 />
               </div>
@@ -282,11 +282,11 @@ export const ReturnRiskScorer: React.FC = () => {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">Payment Rail</label>
+                <label className="text-[11px] font-semibold text-slate-600 block mb-1.5">Payment Rail</label>
                 <select
                   value={paymentMethod}
                   onChange={e => setPaymentMethod(e.target.value as any)}
-                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:outline-none font-bold"
+                  className="w-full px-3 py-2 text-xs font-medium text-slate-800 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:outline-none transition-all bg-white"
                 >
                   <option value="COD">Cash on Delivery (COD)</option>
                   <option value="UPI">Prepaid UPI (Razorpay)</option>
@@ -295,11 +295,11 @@ export const ReturnRiskScorer: React.FC = () => {
                 </select>
               </div>
               <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">Product Category</label>
+                <label className="text-[11px] font-semibold text-slate-600 block mb-1.5">Product Category</label>
                 <select
                   value={productCategory}
                   onChange={e => setProductCategory(e.target.value)}
-                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full px-3 py-2 text-xs font-medium text-slate-800 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:outline-none transition-all bg-white"
                 >
                   <option value="Apparel & Fast Fashion">Apparel & Fast Fashion</option>
                   <option value="Consumer Electronics">Consumer Electronics</option>
@@ -312,9 +312,9 @@ export const ReturnRiskScorer: React.FC = () => {
 
             <div className="grid grid-cols-2 gap-3 pt-1">
               <div>
-                <div className="flex justify-between text-xs mb-1">
-                  <span className="font-bold text-slate-700">Past Customer Return Rate:</span>
-                  <span className="font-bold text-blue-600">{(historicalReturnRate * 100).toFixed(0)}%</span>
+                <div className="flex justify-between text-xs mb-1.5">
+                  <span className="font-semibold text-slate-600">Past Customer Return Rate:</span>
+                  <span className="font-mono font-semibold text-blue-600">{(historicalReturnRate * 100).toFixed(0)}%</span>
                 </div>
                 <input
                   type="range"
@@ -323,13 +323,13 @@ export const ReturnRiskScorer: React.FC = () => {
                   step="0.05"
                   value={historicalReturnRate}
                   onChange={e => setHistoricalReturnRate(Number(e.target.value))}
-                  className="w-full accent-blue-600"
+                  className="w-full accent-blue-600 cursor-pointer"
                 />
               </div>
               <div>
-                <div className="flex justify-between text-xs mb-1">
-                  <span className="font-bold text-slate-700">Account Age:</span>
-                  <span className="font-bold text-blue-600">{accountAgeDays} Days</span>
+                <div className="flex justify-between text-xs mb-1.5">
+                  <span className="font-semibold text-slate-600">Account Age:</span>
+                  <span className="font-mono font-semibold text-blue-600">{accountAgeDays} Days</span>
                 </div>
                 <input
                   type="range"
@@ -337,7 +337,7 @@ export const ReturnRiskScorer: React.FC = () => {
                   max="365"
                   value={accountAgeDays}
                   onChange={e => setAccountAgeDays(Number(e.target.value))}
-                  className="w-full accent-blue-600"
+                  className="w-full accent-blue-600 cursor-pointer"
                 />
               </div>
             </div>
@@ -346,9 +346,9 @@ export const ReturnRiskScorer: React.FC = () => {
               <button
                 type="submit"
                 disabled={evaluating}
-                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
+                className="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-sm hover:shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
               >
-                <Zap className={cn("w-4 h-4", evaluating && "animate-spin")} />
+                <Zap className={cn("w-4 h-4 text-amber-300", evaluating && "animate-spin")} />
                 {evaluating ? 'Evaluating Order Risk...' : 'Score Order for Return & RTO Risk'}
               </button>
             </div>
@@ -361,11 +361,11 @@ export const ReturnRiskScorer: React.FC = () => {
             <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-2xs space-y-5">
               <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                 <div>
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Risk Assessment Result</span>
-                  <h3 className="text-lg font-black text-slate-900 mt-0.5">{activeResult.order_id}</h3>
+                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">Risk Assessment Result</span>
+                  <h3 className="text-base font-bold text-slate-900 font-mono tracking-tight mt-0.5">{activeResult.order_id}</h3>
                 </div>
                 <span className={cn(
-                  "text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider border",
+                  "text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider border",
                   activeResult.risk_tier === 'CRITICAL' && "bg-rose-50 text-rose-700 border-rose-200",
                   activeResult.risk_tier === 'HIGH' && "bg-amber-50 text-amber-700 border-amber-200",
                   activeResult.risk_tier === 'MEDIUM' && "bg-sky-50 text-sky-700 border-sky-200",
@@ -378,18 +378,18 @@ export const ReturnRiskScorer: React.FC = () => {
               {/* Meter Card */}
               <div className="bg-slate-50 text-slate-900 rounded-2xl p-5 border border-slate-200/90 shadow-2xs">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">RTO Probability Score</span>
-                  <span className="text-xs font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">RTO Probability Score</span>
+                  <span className="text-[11px] font-mono font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-md border border-emerald-200">
                     Loss Exposure: ₹{(activeResult?.expected_rto_cost_inr ?? 0).toLocaleString('en-IN')}
                   </span>
                 </div>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-4xl font-black text-slate-900 font-mono">{activeResult.risk_score}</span>
-                  <span className="text-sm text-slate-400">/ 100</span>
+                  <span className="text-3xl font-bold text-slate-900 font-mono tracking-tight">{activeResult.risk_score}</span>
+                  <span className="text-xs text-slate-400 font-medium">/ 100</span>
                 </div>
 
                 {/* Progress bar */}
-                <div className="w-full bg-slate-200 h-2.5 rounded-full mt-3 overflow-hidden">
+                <div className="w-full bg-slate-200 h-2 rounded-full mt-3 overflow-hidden">
                   <div
                     className={cn(
                       "h-full rounded-full transition-all duration-500",
@@ -401,27 +401,28 @@ export const ReturnRiskScorer: React.FC = () => {
               </div>
 
               {/* Recommended Action Box */}
-              <div className="p-4 rounded-xl border border-blue-200 bg-blue-50/60 space-y-1.5">
-                <div className="flex items-center gap-2 text-xs font-bold text-blue-900">
-                  <ShieldCheck className="w-4 h-4 text-blue-700" />
-                  Prescribed Mitigation Action: <span className="font-mono underline">{activeResult.recommended_action}</span>
+              <div className="p-4 rounded-xl border border-blue-200 bg-blue-50/60 space-y-1">
+                <div className="flex items-center gap-2 text-xs font-semibold text-blue-900">
+                  <ShieldCheck className="w-4 h-4 text-blue-700 shrink-0" />
+                  <span>Prescribed Mitigation Action:</span>
+                  <span className="font-mono font-bold text-blue-700 bg-blue-100/80 px-2 py-0.5 rounded border border-blue-200">{activeResult.recommended_action}</span>
                 </div>
-                <p className="text-xs text-blue-800">
+                <p className="text-xs text-blue-700 font-medium pt-0.5">
                   {activeResult.action_description}
                 </p>
               </div>
 
               {/* Contributing Risk Factors */}
               <div className="space-y-2">
-                <span className="text-xs font-bold text-slate-700 uppercase tracking-wider block">Identified Risk Signals</span>
+                <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block">Identified Risk Signals</span>
                 {(activeResult?.signals || []).map((sig, idx) => (
                   <div key={idx} className="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-start justify-between gap-3 text-xs">
                     <div>
-                      <div className="font-bold text-slate-800">{sig?.signal ? sig.signal.replace(/_/g, ' ') : 'Risk Signal'}</div>
-                      <div className="text-[11px] text-slate-500 mt-0.5">{sig?.description || 'Signal verified'}</div>
+                      <div className="font-semibold text-slate-900 text-xs">{sig?.signal ? sig.signal.replace(/_/g, ' ') : 'Risk Signal'}</div>
+                      <div className="text-[11px] text-slate-500 font-medium mt-0.5">{sig?.description || 'Signal verified'}</div>
                     </div>
                     <span className={cn(
-                      "font-mono font-bold text-xs shrink-0 px-2 py-0.5 rounded",
+                      "font-mono font-bold text-[11px] shrink-0 px-2 py-0.5 rounded-md",
                       (sig?.impact || '').startsWith('+') ? "bg-rose-100 text-rose-700" : "bg-emerald-100 text-emerald-700"
                     )}>
                       {sig?.impact || '+0'}

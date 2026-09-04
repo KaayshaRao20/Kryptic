@@ -51,8 +51,8 @@ const TONE_MAP: Record<string, { bg: string; border: string; icon: string; iconB
   violet: { bg: "bg-violet-50", border: "border-violet-200", icon: "text-violet-500", iconBg: "bg-violet-100" },
 };
 
-const CANVAS_W = 940;
-const CANVAS_H = 600;
+const CANVAS_W = 1200;
+const CANVAS_H = 620;
 
 const STATUS_DOT: Record<string, string> = {
   healthy: "bg-emerald-500",
@@ -574,16 +574,9 @@ export default function TwinLab() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowCustomModal(true)}
-              className="flex items-center gap-1.5 text-[13px] font-medium text-gray-600 border border-gray-200 rounded-lg px-3.5 py-2 hover:bg-gray-50 bg-white"
+              className="flex items-center gap-1.5 text-[13px] font-medium text-gray-600 border border-gray-200 rounded-lg px-3.5 py-2 hover:bg-gray-50 bg-white shadow-2xs"
             >
               <Sliders size={14} /> Configure Scenario
-            </button>
-            <button
-              onClick={runSimulation}
-              disabled={running}
-              className="flex items-center gap-1.5 text-[13px] font-semibold text-white rounded-lg px-4 py-2 bg-gradient-to-r from-emerald-500 to-blue-600 hover:opacity-90 disabled:opacity-60 shadow-sm transition-all"
-            >
-              <Play size={14} className="fill-white" /> {running ? "Simulating Pipeline…" : "INJECT FRAUD"}
             </button>
           </div>
         </div>
@@ -597,7 +590,7 @@ export default function TwinLab() {
               <button
                 key={s.key}
                 onClick={() => setScenario(s.key)}
-                className={`text-left rounded-xl border p-3.5 transition-all ${
+                className={`text-left rounded-xl border p-3.5 transition-all cursor-pointer ${
                   active ? `${tone.bg} ${tone.border} ring-1 ring-inset ${tone.border} shadow-sm` : "bg-white border-gray-200 hover:border-gray-300"
                 }`}
               >
@@ -611,7 +604,7 @@ export default function TwinLab() {
           })}
           <button
             onClick={() => setShowCustomModal(true)}
-            className="text-left rounded-xl border border-dashed border-gray-300 p-3.5 flex flex-col items-start justify-center bg-white hover:border-gray-400 transition-colors"
+            className="text-left rounded-xl border border-dashed border-gray-300 p-3.5 flex flex-col items-start justify-center bg-white hover:border-gray-400 transition-colors cursor-pointer"
           >
             <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-2 bg-gray-100">
               <Plus size={15} className="text-gray-400" />
@@ -622,10 +615,10 @@ export default function TwinLab() {
         </div>
       </section>
 
-      {/* Main Grid: Payment Flow Twin + Simulation Controls / Live Results */}
+      {/* Main Grid: Full-Width Payment Flow Twin Canvas */}
       <section className="grid grid-cols-12 gap-5 items-start">
-        {/* Payment Flow Twin Canvas */}
-        <div className="col-span-8 bg-white rounded-2xl border border-gray-100 shadow-sm">
+        {/* Payment Flow Twin Canvas (Full Width col-span-12) */}
+        <div className="col-span-12 bg-white rounded-2xl border border-gray-100 shadow-sm">
           <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-gray-50">
             <div className="flex items-center gap-2.5">
               <span className="text-[13px] font-semibold tracking-wide text-gray-500">PAYMENT FLOW TWIN</span>
@@ -773,98 +766,24 @@ export default function TwinLab() {
             <Legend />
             {selectedNode && (
               <div className="text-[12px] text-gray-500">
-                Selected: <span className="font-semibold text-gray-800">{selectedNode.name}</span> ({selectedNode.layer}) · Latency: {selectedNode.latencyMs}ms
+                Selected Node: <span className="font-semibold text-gray-800">{selectedNode.name}</span> ({selectedNode.layer}) · Latency: {selectedNode.latencyMs}ms
               </div>
             )}
           </div>
         </div>
 
-        {/* Right Column: Simulation Controls + Live Results */}
-        <div className="col-span-4 space-y-5">
-          {/* Controls Panel */}
+        {/* Full-width Live Telemetry & Results Section Below Canvas */}
+        <div className="col-span-12 grid grid-cols-1 md:grid-cols-3 gap-5">
+          {/* Live Results Card */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-            <div className="text-[13px] font-semibold tracking-wide text-gray-500 mb-1">SIMULATION CONTROLS</div>
-
-            <div className="divide-y divide-gray-50">
-              <div className="flex items-center justify-between py-2.5">
-                <div className="flex items-center gap-1 text-[13px] text-gray-500">
-                  Total Events <span className="text-gray-300 text-[11px]" title="Number of simulation transaction events">ⓘ</span>
-                </div>
-                <input
-                  type="number"
-                  value={totalEvents}
-                  onChange={(e) => setTotalEvents(Number(e.target.value) || 0)}
-                  className="w-24 text-right bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1.5 text-[13px] font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-900/10"
-                />
-              </div>
-
-              <div className="py-3">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-1 text-[13px] text-gray-500">
-                    Fraud Ratio <span className="text-gray-300 text-[11px]" title="Percentage of synthetic attacks injected">ⓘ</span>
-                  </div>
-                  <span className="text-[13px] font-semibold text-gray-800">{fraudRatio}%</span>
-                </div>
-                <input
-                  type="range"
-                  min={1}
-                  max={60}
-                  value={fraudRatio}
-                  onChange={(e) => setFraudRatio(Number(e.target.value))}
-                  className="w-full accent-emerald-500 cursor-pointer"
-                />
-              </div>
-
-              <ControlSelect label="Duration" info value={duration} onChange={setDuration} options={["5 min", "10 min", "30 min", "1 hr"]} />
-              <ControlSelect label="Start Time" info value={startTime} onChange={setStartTime} options={["Now", "Scheduled"]} />
-              <ControlSelect label="Injection Pattern" info value={injectionPattern} onChange={setInjectionPattern} options={["Burst", "Gradual", "Random"]} />
-            </div>
-
-            <button
-              onClick={() => setShowAdvanced(!showAdvanced)}
-              className="w-full flex items-center justify-between text-[13px] font-medium text-gray-600 pt-3 mt-1 border-t border-gray-50 hover:text-gray-900"
-            >
-              <span>Advanced Parameters</span>
-              <ChevronRight size={14} className={`transition-transform ${showAdvanced ? "rotate-90" : ""}`} />
-            </button>
-
-            {showAdvanced && (
-              <div className="mt-3 p-3 bg-gray-50 rounded-xl space-y-2 text-[12px] text-gray-600 border border-gray-100">
-                <div className="flex justify-between items-center">
-                  <span>Target Node:</span>
-                  <select
-                    value={customTargetNode}
-                    onChange={(e) => setCustomTargetNode(e.target.value)}
-                    className="bg-white border rounded px-2 py-1 text-[11px]"
-                  >
-                    <option value="risk_engine">Risk Engine</option>
-                    <option value="auth_service">Auth Service</option>
-                    <option value="entry_gateway">Entry Gateway</option>
-                    <option value="smart_router">Smart Router</option>
-                  </select>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span>Propagation Hops:</span>
-                  <span className="font-semibold text-gray-800">2 Hops</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span>Attacking IP Subnet:</span>
-                  <span className="font-mono text-gray-700 text-[11px]">185.220.101.0/24</span>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Live Results Panel */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-            <div className="flex items-center justify-between mb-1">
-              <div className="text-[13px] font-semibold tracking-wide text-gray-500">LIVE RESULTS</div>
-              <span className="flex items-center gap-1 text-[11px] font-medium text-emerald-600">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Live
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-[13px] font-bold tracking-wide text-gray-800">LIVE TELEMETRY RESULTS</div>
+              <span className="flex items-center gap-1 text-[11px] font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Live Stream
               </span>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 items-center mt-1">
+            <div className="grid grid-cols-2 gap-3 items-center mt-3">
               <Gauge value={results.detectionRate} />
               <div className="space-y-3">
                 <StatBox label="Injected Events" value={results.injected.toLocaleString()} />
