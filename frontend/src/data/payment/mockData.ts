@@ -127,8 +127,9 @@ class SR {
 // ─── Generator ────────────────────────────────────────────────────
 function buildTransactions(): Transaction[] {
   const rng = new SR(42);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
   const txns: Transaction[] = [];
-  const today = new Date('2026-09-01T00:00:00.000Z').getTime();
   let counter = 1;
 
   // Per-entity home location (stable entities always return here)

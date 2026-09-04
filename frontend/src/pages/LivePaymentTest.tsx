@@ -548,23 +548,30 @@ export const LivePaymentTest: React.FC = () => {
             </div>
 
             <div className="space-y-2.5">
-              {recentPayments.map((p) => (
-                <div key={p.id} className="p-2.5 rounded-xl bg-gray-50/70 border border-gray-100 flex items-center justify-between text-xs">
-                  <div>
-                    <div className="font-mono font-bold text-blue-600">{p.id}</div>
-                    <div className="text-[11px] text-gray-500 truncate max-w-[180px]">{p.description}</div>
+              {recentPayments.map((p) => {
+                const dateObj = new Date(p.created_at);
+                const timeStr = isNaN(dateObj.getTime()) ? 'Just now' : dateObj.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+                return (
+                  <div key={p.id} className="p-2.5 rounded-xl bg-gray-50/70 border border-gray-100 flex items-center justify-between text-xs hover:bg-gray-50 transition-colors">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-bold text-blue-600">{p.id}</span>
+                        <span className="text-[10px] text-gray-400 font-mono">{timeStr}</span>
+                      </div>
+                      <div className="text-[11px] text-gray-500 truncate max-w-[180px]">{p.description}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-mono font-bold text-gray-900">₹{p.amount.toLocaleString('en-IN')}</div>
+                      <span className={cn(
+                        "text-[10px] font-bold px-1.5 py-0.5 rounded",
+                        p.status === 'captured' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
+                      )}>
+                        {p.status}
+                      </span>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <div className="font-mono font-bold text-gray-900">₹{p.amount.toLocaleString('en-IN')}</div>
-                    <span className={cn(
-                      "text-[10px] font-bold px-1.5 py-0.5 rounded",
-                      p.status === 'captured' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
-                    )}>
-                      {p.status}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>

@@ -5,7 +5,7 @@
 [![Frontend](https://img.shields.io/badge/Frontend-React%20%7C%20TypeScript%20%7C%20Vite-61dafb.svg)](frontend/)
 [![Backend](https://img.shields.io/badge/Backend-FastAPI%20%7C%20Python-009688.svg)](backend/)
 [![ML Model](https://img.shields.io/badge/ML%20Engine-XGBoost%20v2.0.0-orange.svg)](models/)
-[![Live Deployment](https://img.shields.io/badge/Live%20Demo-Vercel-black.svg)](https://kryptic-razor-pay.vercel.app)
+[![Live Deployment](https://img.shields.io/badge/Live%20Demo-Vercel-black.svg)](https://kryptic-v20.vercel.app)
 
 KRYPTIC is an AI-powered payment risk intelligence platform built for merchants who need to go beyond a single "risky / not risky" score. It brings together fraud detection, return/RTO risk, dispute and chargeback workflows, customer-level investigation, payment-flow intelligence, explainable AI, risk simulation, alerting, and audit-grade reporting into a single operating surface — connected to Razorpay for live payment data and Gemini for AI-assisted investigation.
 
