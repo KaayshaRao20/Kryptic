@@ -772,153 +772,247 @@ export default function TwinLab() {
           </div>
         </div>
 
-        {/* Full-width Live Telemetry & Results Section Below Canvas */}
+        {/* Full-width Live Telemetry & Results Section Below Canvas (3 Full Columns) */}
         <div className="col-span-12 grid grid-cols-1 md:grid-cols-3 gap-5">
-          {/* Live Results Card */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-            <div className="flex items-center justify-between mb-2">
-              <div className="text-[13px] font-bold tracking-wide text-gray-800">LIVE TELEMETRY RESULTS</div>
-              <span className="flex items-center gap-1 text-[11px] font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Live Stream
-              </span>
-            </div>
+          {/* Card 1: Core Detection Efficiency */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-[13px] font-bold tracking-wide text-gray-800">LIVE TELEMETRY RESULTS</div>
+                <span className="flex items-center gap-1 text-[11px] font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Live Stream
+                </span>
+              </div>
 
-            <div className="grid grid-cols-2 gap-3 items-center mt-3">
-              <Gauge value={results.detectionRate} />
-              <div className="space-y-3">
-                <StatBox label="Injected Events" value={results.injected.toLocaleString()} />
-                <StatBox label="Detected Events" value={results.detected.toLocaleString()} />
-                <StatBox label="Missed Events" value={results.missed.toLocaleString()} />
-                <StatBox label="False Positives" value={results.falsePositives.toLocaleString()} />
+              <div className="grid grid-cols-2 gap-3 items-center mt-3">
+                <Gauge value={results.detectionRate} />
+                <div className="space-y-2.5">
+                  <StatBox label="Injected Events" value={results.injected.toLocaleString()} />
+                  <StatBox label="Detected Events" value={results.detected.toLocaleString()} />
+                  <StatBox label="Missed Events" value={results.missed.toLocaleString()} />
+                  <StatBox label="False Positives" value={results.falsePositives.toLocaleString()} />
+                </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-3 mt-5 pt-4 border-t border-gray-50">
-              <StatBox label="Precision" value={`${results.precision.toFixed(1)}%`} delta="8.7%" up />
-              <StatBox label="Recall" value={`${results.recall.toFixed(1)}%`} delta="12.4%" up />
-              <StatBox label="F1 Score" value={`${results.f1.toFixed(1)}%`} delta="10.3%" up />
+            <div className="pt-3 mt-3 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-500">
+              <span>Entropy Source: Stochastic Mesh</span>
+              <span className="font-semibold text-emerald-600">99.8% Online</span>
             </div>
-            <div className="grid grid-cols-3 gap-3 mt-4">
-              <StatBox label="False Positive Rate" value={`${results.fpr.toFixed(1)}%`} delta="2.1%" up={false} />
-              <StatBox label="Avg Detection Latency" value={`${results.latency} ms`} delta="35 ms" up={false} />
-              <StatBox label="False Positive Cost" value={`$${results.fpCost.toFixed(2)}`} delta="$32.10" up={false} />
+          </div>
+
+          {/* Card 2: ML Statistical Performance & Latency */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <div className="text-[13px] font-bold tracking-wide text-gray-800">STATISTICAL METRICS &amp; SLA</div>
+                <span className="text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">ML Eval</span>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <StatBox label="Precision" value={`${results.precision.toFixed(1)}%`} delta="8.7%" up />
+                <StatBox label="Recall" value={`${results.recall.toFixed(1)}%`} delta="12.4%" up />
+                <StatBox label="F1 Score" value={`${results.f1.toFixed(1)}%`} delta="10.3%" up />
+              </div>
+
+              <div className="grid grid-cols-3 gap-3 mt-4 pt-3 border-t border-gray-50">
+                <StatBox label="FP Rate" value={`${results.fpr.toFixed(1)}%`} delta="2.1%" up={false} />
+                <StatBox label="Latency" value={`${results.latency} ms`} delta="35 ms" up={false} />
+                <StatBox label="FP Cost" value={`$${results.fpCost.toFixed(2)}`} delta="$32.10" up={false} />
+              </div>
+            </div>
+
+            <div className="pt-3 mt-3 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-500">
+              <span>Confidence Interval: 99.4%</span>
+              <span className="font-semibold text-gray-700">Threshold: 0.72</span>
+            </div>
+          </div>
+
+          {/* Card 3: Automated Risk Policy Actions & Mitigation */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <div className="text-[13px] font-bold tracking-wide text-gray-800">AUTOMATED CONTAINMENT</div>
+                <span className="text-[11px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-100">DEFENSE ACTIVE</span>
+              </div>
+
+              <div className="space-y-2 text-xs">
+                <div className="flex items-center justify-between p-2 rounded-xl bg-gray-50/80 border border-gray-100">
+                  <span className="text-gray-600 font-medium">3DS Step-Up Challenge</span>
+                  <span className="font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded text-[11px]">Enforced (99.2%)</span>
+                </div>
+                <div className="flex items-center justify-between p-2 rounded-xl bg-gray-50/80 border border-gray-100">
+                  <span className="text-gray-600 font-medium">Velocity Rate Limiter</span>
+                  <span className="font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded text-[11px]">350 req/min</span>
+                </div>
+                <div className="flex items-center justify-between p-2 rounded-xl bg-gray-50/80 border border-gray-100">
+                  <span className="text-gray-600 font-medium">Risk Anomaly Quarantine</span>
+                  <span className="font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded text-[11px]">4 IPs Contained</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-3 mt-3 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-500">
+              <span>Cascade Circuit: ARMED</span>
+              <span className="font-semibold text-emerald-600">Zero Leakage</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Bottom Row: Event Timeline + 3D Risk Heatmap */}
+      {/* Bottom Row: Event Timeline + 3D Risk Heatmap with Coordinates */}
       <section className="grid grid-cols-12 gap-5">
         {/* Timeline */}
-        <div className="col-span-8 bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-          <div className="flex items-center justify-between mb-4">
-            <div className="text-[13px] font-semibold tracking-wide text-gray-500">EVENT TIMELINE (Live Stream)</div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setSeed((s) => s - 1)}
-                className="p-1.5 border border-gray-200 rounded-lg text-gray-500 hover:bg-gray-50"
-              >
-                <SkipBack size={13} />
-              </button>
-              <button
-                onClick={() => setSeed((s) => s + 1)}
-                className="p-1.5 border border-gray-200 rounded-lg text-gray-500 hover:bg-gray-50"
-              >
-                <SkipForward size={13} />
-              </button>
-              <select
-                value={playbackSpeed}
-                onChange={(e) => setPlaybackSpeed(e.target.value)}
-                className="text-[12px] font-medium text-gray-600 border border-gray-200 rounded-lg px-2 py-1 bg-white cursor-pointer"
-              >
-                <option value="0.5x">0.5x</option>
-                <option value="1.0x">1.0x</option>
-                <option value="2.0x">2.0x</option>
-              </select>
-              <button
-                onClick={() => setIsLiveStream(!isLiveStream)}
-                className={`text-[11px] font-semibold px-2.5 py-1.5 rounded-lg transition-colors ${
-                  isLiveStream ? "text-emerald-600 bg-emerald-50" : "text-gray-500 bg-gray-100"
-                }`}
-              >
-                {isLiveStream ? "Live" : "Paused"}
-              </button>
+        <div className="col-span-12 lg:col-span-7 bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div className="text-[13px] font-semibold tracking-wide text-gray-500">EVENT TIMELINE (Live Stream)</div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setSeed((s) => s - 1)}
+                  className="p-1.5 border border-gray-200 rounded-lg text-gray-500 hover:bg-gray-50 cursor-pointer"
+                >
+                  <SkipBack size={13} />
+                </button>
+                <button
+                  onClick={() => setSeed((s) => s + 1)}
+                  className="p-1.5 border border-gray-200 rounded-lg text-gray-500 hover:bg-gray-50 cursor-pointer"
+                >
+                  <SkipForward size={13} />
+                </button>
+                <select
+                  value={playbackSpeed}
+                  onChange={(e) => setPlaybackSpeed(e.target.value)}
+                  className="text-[12px] font-medium text-gray-600 border border-gray-200 rounded-lg px-2 py-1 bg-white cursor-pointer"
+                >
+                  <option value="0.5x">0.5x</option>
+                  <option value="1.0x">1.0x</option>
+                  <option value="2.0x">2.0x</option>
+                </select>
+                <button
+                  onClick={() => setIsLiveStream(!isLiveStream)}
+                  className={`text-[11px] font-semibold px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer ${
+                    isLiveStream ? "text-emerald-600 bg-emerald-50" : "text-gray-500 bg-gray-100"
+                  }`}
+                >
+                  {isLiveStream ? "Live" : "Paused"}
+                </button>
+              </div>
+            </div>
+
+            <div className="text-[11px] text-gray-400 mb-2">12:21:03 · Live Ingestion Stream</div>
+            <div className="relative">
+              <div className="absolute left-0 right-0 top-[9px] h-px bg-gray-200" />
+              <div className="grid grid-cols-7 gap-2 relative">
+                {timelineEvents.map((ev) => (
+                  <div key={ev.key} className="flex flex-col items-center text-center">
+                    {ev.status === "anomalous" ? (
+                      <div className="relative w-4 h-4 mb-3 flex items-center justify-center">
+                        <span className="absolute w-4 h-4 rounded-full bg-rose-500 ring-2 ring-white z-10" />
+                        <span className="absolute w-4 h-4 rounded-full bg-rose-400 timeline-ping" />
+                        <span className="absolute w-4 h-4 rounded-full bg-rose-400 timeline-ping" style={{ animationDelay: "0.6s" }} />
+                        <svg viewBox="0 0 40 40" className="absolute w-10 h-10 -z-0 timeline-burst-spin">
+                          {Array.from({ length: 8 }).map((_, i) => (
+                            <line
+                              key={i}
+                              x1="20"
+                              y1="20"
+                              x2={20 + 17 * Math.cos((i * Math.PI) / 4)}
+                              y2={20 + 17 * Math.sin((i * Math.PI) / 4)}
+                              stroke="#fda4af"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                            />
+                          ))}
+                        </svg>
+                      </div>
+                    ) : (
+                      <div className={`w-4 h-4 rounded-full ring-4 ${STATUS_RING[ev.status]} mb-3 ${STATUS_DOT[ev.status]}`} />
+                    )}
+                    <div
+                      className={`w-full rounded-lg border px-2 py-2 ${
+                        ev.status === "anomalous" ? "border-rose-200 bg-rose-50 shadow-sm" : "border-gray-100 bg-gray-50"
+                      }`}
+                    >
+                      <div className="text-[10.5px] font-semibold text-gray-700 leading-tight">{ev.label}</div>
+                      <div className="text-[10.5px] text-gray-400 mt-1">{ev.trps}</div>
+                      <div className={`text-[10.5px] font-medium mt-0.5 ${STATUS_TEXT[ev.status]}`}>{ev.risk}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
-          <div className="text-[11px] text-gray-400 mb-2">12:21:03 · Live Ingestion Stream</div>
-          <div className="relative">
-            <div className="absolute left-0 right-0 top-[9px] h-px bg-gray-200" />
-            <div className="grid grid-cols-7 gap-2 relative">
-              {timelineEvents.map((ev) => (
-                <div key={ev.key} className="flex flex-col items-center text-center">
-                  {ev.status === "anomalous" ? (
-                    <div className="relative w-4 h-4 mb-3 flex items-center justify-center">
-                      <span className="absolute w-4 h-4 rounded-full bg-rose-500 ring-2 ring-white z-10" />
-                      <span className="absolute w-4 h-4 rounded-full bg-rose-400 timeline-ping" />
-                      <span className="absolute w-4 h-4 rounded-full bg-rose-400 timeline-ping" style={{ animationDelay: "0.6s" }} />
-                      <svg viewBox="0 0 40 40" className="absolute w-10 h-10 -z-0 timeline-burst-spin">
-                        {Array.from({ length: 8 }).map((_, i) => (
-                          <line
-                            key={i}
-                            x1="20"
-                            y1="20"
-                            x2={20 + 17 * Math.cos((i * Math.PI) / 4)}
-                            y2={20 + 17 * Math.sin((i * Math.PI) / 4)}
-                            stroke="#fda4af"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                          />
-                        ))}
-                      </svg>
-                    </div>
-                  ) : (
-                    <div className={`w-4 h-4 rounded-full ring-4 ${STATUS_RING[ev.status]} mb-3 ${STATUS_DOT[ev.status]}`} />
-                  )}
-                  <div
-                    className={`w-full rounded-lg border px-2 py-2 ${
-                      ev.status === "anomalous" ? "border-rose-200 bg-rose-50 shadow-sm" : "border-gray-100 bg-gray-50"
-                    }`}
-                  >
-                    <div className="text-[10.5px] font-semibold text-gray-700 leading-tight">{ev.label}</div>
-                    <div className="text-[10.5px] text-gray-400 mt-1">{ev.trps}</div>
-                    <div className={`text-[10.5px] font-medium mt-0.5 ${STATUS_TEXT[ev.status]}`}>{ev.risk}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
+          <div className="pt-3 mt-4 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-400">
+            <span>Synchronized telemetry clock: UTC+05:30</span>
+            <span className="font-semibold text-gray-700">7 Active Pipeline Stages</span>
           </div>
         </div>
 
-        {/* 3D Risk Heatmap */}
-        <div className="col-span-4 bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-          <div className="flex items-center justify-between mb-4">
-            <div className="text-[13px] font-semibold tracking-wide text-gray-500">RISK HEATMAP (Twin Topology)</div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-[11px] font-medium text-white bg-gray-900 px-2.5 py-1 rounded-lg">Heat</span>
-              <span className="text-[11px] font-medium text-gray-400 px-2.5 py-1 rounded-lg">Flow</span>
+        {/* 3D Risk Heatmap with Detailed Coordinates */}
+        <div className="col-span-12 lg:col-span-5 bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <div className="text-[13px] font-semibold tracking-wide text-gray-800">RISK HEATMAP (Twin Topology)</div>
+                <div className="text-[10.5px] text-gray-400">3D Coordinate Mesh &amp; Risk Iso-surface</div>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[11px] font-medium text-white bg-gray-900 px-2.5 py-1 rounded-lg shadow-2xs">Heat (3D)</span>
+                <span className="text-[11px] font-medium text-gray-600 bg-gray-100 px-2.5 py-1 rounded-lg">Grid</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="flex-1 aspect-[16/11] rounded-xl bg-gradient-to-b from-slate-900 to-slate-950 overflow-hidden flex items-center justify-center shadow-inner relative border border-slate-800">
+                {/* Visual coordinate axes labels */}
+                <span className="absolute top-2 left-2 text-[9px] font-mono text-cyan-400 bg-slate-800/80 px-1.5 py-0.5 rounded">
+                  Z: Altitude (Risk Density)
+                </span>
+                <span className="absolute bottom-2 left-2 text-[9px] font-mono text-slate-400 bg-slate-800/80 px-1.5 py-0.5 rounded">
+                  X: Nodes [0..14]
+                </span>
+                <span className="absolute bottom-2 right-2 text-[9px] font-mono text-slate-400 bg-slate-800/80 px-1.5 py-0.5 rounded">
+                  Y: Velocity [0..10]
+                </span>
+
+                <div className="heat-slow-spin" style={{ width: "85%", height: "85%" }}>
+                  <svg viewBox="-160 -110 400 300" className="w-full h-full overflow-visible">
+                    <g opacity="0.35">
+                      {Array.from({ length: 11 }).map((_, i) => (
+                        <line key={`h${i}`} x1={-110 + i * 20} y1={100} x2={-110 + i * 20 + 130} y2={-30} stroke="#38bdf8" strokeWidth="0.6" />
+                      ))}
+                    </g>
+                    {isoSurface.map((q, i) => (
+                      <path key={i} d={q.d} fill={q.color} stroke="rgba(255,255,255,0.25)" strokeWidth="0.4" />
+                    ))}
+                  </svg>
+                </div>
+              </div>
+              <div className="flex flex-col items-center h-full justify-between py-2">
+                <span className="text-[10px] text-rose-500 font-bold">1.0</span>
+                <div className="w-2 flex-1 my-1 rounded-full" style={{ background: "linear-gradient(to bottom, #e33737, #f0c828, #3cc878, #1ea0e6, #283cc8)" }} />
+                <span className="text-[10px] text-blue-500 font-bold">0.0</span>
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="flex-1 aspect-square rounded-xl bg-gradient-to-b from-sky-50 to-blue-50 overflow-hidden flex items-center justify-center shadow-inner">
-              <div className="heat-slow-spin" style={{ width: "88%", height: "88%" }}>
-                <svg viewBox="-160 -110 400 300" className="w-full h-full overflow-visible">
-                  <g opacity="0.35">
-                    {Array.from({ length: 11 }).map((_, i) => (
-                      <line key={`h${i}`} x1={-110 + i * 20} y1={100} x2={-110 + i * 20 + 130} y2={-30} stroke="#93c5fd" strokeWidth="0.6" />
-                    ))}
-                  </g>
-                  {isoSurface.map((q, i) => (
-                    <path key={i} d={q.d} fill={q.color} stroke="rgba(255,255,255,0.25)" strokeWidth="0.4" />
-                  ))}
-                </svg>
+          {/* Explicit Coordinate Readouts Below Heatmap */}
+          <div className="pt-3 mt-3 border-t border-gray-100">
+            <div className="grid grid-cols-3 gap-2 text-center text-xs font-mono">
+              <div className="p-1.5 bg-gray-50 rounded-lg border border-gray-100">
+                <span className="text-[9.5px] text-gray-400 block font-sans uppercase">Peak Coords</span>
+                <span className="font-bold text-gray-800">X:4, Y:3</span>
               </div>
-            </div>
-            <div className="flex flex-col items-center h-full justify-between py-2">
-              <span className="text-[10.5px] text-gray-400 font-medium">High</span>
-              <div className="w-2 flex-1 my-1 rounded-full" style={{ background: "linear-gradient(to bottom, #e33737, #f0c828, #3cc878, #1ea0e6, #283cc8)" }} />
-              <span className="text-[10.5px] text-gray-400 font-medium">Low</span>
+              <div className="p-1.5 bg-gray-50 rounded-lg border border-gray-100">
+                <span className="text-[9.5px] text-gray-400 block font-sans uppercase">Peak Density</span>
+                <span className="font-bold text-rose-600">Z: 0.94</span>
+              </div>
+              <div className="p-1.5 bg-gray-50 rounded-lg border border-gray-100">
+                <span className="text-[9.5px] text-gray-400 block font-sans uppercase">Topology</span>
+                <span className="font-bold text-emerald-600">140 Nodes</span>
+              </div>
             </div>
           </div>
         </div>

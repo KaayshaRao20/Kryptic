@@ -105,54 +105,41 @@ export const AdminAlerts: React.FC = () => {
   const severityConfigs: Record<AlertSeverity, { 
     pill: string; 
     dot: string; 
-    bgLight: string;
     label: string;
-    icon: any;
   }> = {
     CRITICAL: { 
-      pill: 'bg-rose-50 text-rose-700 border-rose-200/90 font-black', 
-      dot: 'bg-rose-500 ring-4 ring-rose-500/20 animate-pulse', 
-      bgLight: 'bg-rose-50/40',
-      label: 'Critical',
-      icon: Flame
+      pill: 'bg-rose-50 text-rose-700 border-rose-200 font-bold', 
+      dot: 'bg-rose-500', 
+      label: 'Critical'
     },
     HIGH: { 
-      pill: 'bg-orange-50 text-orange-700 border-orange-200/90 font-bold', 
-      dot: 'bg-orange-500 ring-4 ring-orange-500/20', 
-      bgLight: 'bg-orange-50/40',
-      label: 'High',
-      icon: AlertTriangle
+      pill: 'bg-orange-50 text-orange-700 border-orange-200 font-semibold', 
+      dot: 'bg-orange-500', 
+      label: 'High'
     },
     MEDIUM: { 
-      pill: 'bg-amber-50 text-amber-700 border-amber-200/90 font-bold', 
-      dot: 'bg-amber-500 ring-4 ring-amber-500/20', 
-      bgLight: 'bg-amber-50/30',
-      label: 'Medium',
-      icon: AlertCircle
+      pill: 'bg-amber-50 text-amber-700 border-amber-200 font-medium', 
+      dot: 'bg-amber-500', 
+      label: 'Medium'
     },
     LOW: { 
-      pill: 'bg-emerald-50 text-emerald-700 border-emerald-200/90 font-semibold', 
-      dot: 'bg-emerald-500 ring-4 ring-emerald-500/20', 
-      bgLight: 'bg-emerald-50/30',
-      label: 'Low',
-      icon: ShieldCheck
+      pill: 'bg-slate-50 text-slate-700 border-slate-200 font-medium', 
+      dot: 'bg-slate-400', 
+      label: 'Low'
     }
   };
 
-  const statusConfigs: Record<AlertStatus, { badge: string; dot: string; label: string }> = {
+  const statusConfigs: Record<AlertStatus, { badge: string; label: string }> = {
     ACTIVE: {
-      badge: 'bg-rose-50 text-rose-700 border-rose-200/80 font-bold',
-      dot: 'bg-rose-500',
+      badge: 'bg-rose-50 text-rose-700 border-rose-200 font-bold',
       label: 'Active'
     },
     INVESTIGATING: {
-      badge: 'bg-amber-50 text-amber-700 border-amber-200/80 font-bold',
-      dot: 'bg-amber-500',
+      badge: 'bg-amber-50 text-amber-700 border-amber-200 font-bold',
       label: 'Investigating'
     },
     RESOLVED: {
-      badge: 'bg-slate-100 text-slate-600 border-slate-200 font-semibold',
-      dot: 'bg-slate-400',
+      badge: 'bg-slate-100 text-slate-600 border-slate-200 font-medium',
       label: 'Resolved'
     }
   };
@@ -180,44 +167,37 @@ export const AdminAlerts: React.FC = () => {
   };
 
   return (
-    <div className="w-full max-w-none space-y-6 pb-16 font-sans text-slate-800">
+    <div className="w-full max-w-none space-y-5 pb-12 font-sans text-slate-800 antialiased">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed top-5 right-8 z-50 bg-slate-900/95 backdrop-blur-md text-white px-4 py-3 rounded-2xl shadow-2xl border border-slate-700/80 text-xs font-bold flex items-center gap-2.5 animate-in fade-in slide-in-from-top-3">
-          <Zap className="w-4 h-4 text-amber-400 fill-amber-400 shrink-0" />
+        <div className="fixed top-5 right-8 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-xl text-xs font-semibold flex items-center gap-2 animate-in fade-in">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
           <span>{toastMessage}</span>
         </div>
       )}
 
       {/* ─── 1. Command Center Top Header ─── */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-slate-200/80">
-        <div className="space-y-1">
-          <div className="flex items-center gap-3 flex-wrap">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-rose-500 to-rose-600 flex items-center justify-center text-white shadow-md shadow-rose-500/20">
-              <Siren className="w-5 h-5 animate-pulse" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2.5">
-                <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-                  Risk &amp; Alerts Command Queue
-                </h1>
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200">
-                  <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
-                  SOC Live Monitor
-                </span>
-              </div>
-              <p className="text-xs text-slate-500 font-medium mt-0.5">
-                Real-time surveillance of threat spikes, automated velocity containment, and dispute escalation queues.
-              </p>
-            </div>
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+        <div>
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+              Risk &amp; Alerts Command Queue
+            </h1>
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200">
+              <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+              SOC Live Monitor
+            </span>
           </div>
+          <p className="text-xs text-slate-500 font-medium mt-1">
+            Centrally monitor threat triggers, velocity spikes, and high-risk payment anomalies across all merchant channels.
+          </p>
         </div>
 
         <div className="flex items-center gap-2.5 flex-wrap">
           <button
             onClick={loadAlerts}
             disabled={loading}
-            className="px-3.5 py-2 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 text-xs font-bold rounded-xl shadow-2xs flex items-center gap-2 hover:bg-slate-50 transition-all cursor-pointer disabled:opacity-60"
+            className="px-3 py-1.5 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 text-xs font-semibold rounded-xl shadow-2xs flex items-center gap-1.5 hover:bg-slate-50 transition-colors cursor-pointer disabled:opacity-60"
             title="Refresh Live Alert Feed"
           >
             <RefreshCw className={cn("w-3.5 h-3.5 text-slate-500", loading && "animate-spin text-blue-600")} />
@@ -226,10 +206,10 @@ export const AdminAlerts: React.FC = () => {
 
           <button
             onClick={() => navigate('/alerts')}
-            className="px-3.5 py-2 bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white text-xs font-bold rounded-xl shadow-md shadow-rose-500/20 flex items-center gap-2 transition-all active:scale-98 cursor-pointer"
+            className="px-3.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-semibold rounded-xl flex items-center gap-2 transition-colors cursor-pointer"
           >
-            <ShieldAlert className="w-4 h-4 text-white" />
-            <span>Emergency Defense Console</span>
+            <ShieldAlert className="w-4 h-4 text-rose-600" />
+            <span>Emergency Defenses</span>
           </button>
 
           <button
@@ -237,10 +217,10 @@ export const AdminAlerts: React.FC = () => {
               exportAlertsToCSV(filteredAlerts);
               showToast(`Exported ${filteredAlerts.length} alerts to CSV`);
             }}
-            className="px-3.5 py-2 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 text-xs font-bold rounded-xl shadow-2xs flex items-center gap-2 hover:bg-slate-50 transition-all cursor-pointer"
+            className="px-3 py-1.5 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 text-xs font-semibold rounded-xl shadow-2xs flex items-center gap-1.5 hover:bg-slate-50 transition-colors cursor-pointer"
           >
-            <Download className="w-4 h-4 text-slate-500" />
-            <span>Export Audit Log</span>
+            <Download className="w-3.5 h-3.5 text-slate-500" />
+            <span>Export CSV</span>
           </button>
         </div>
       </div>
@@ -251,24 +231,22 @@ export const AdminAlerts: React.FC = () => {
         <div
           onClick={() => setSelectedSeverity(selectedSeverity === 'CRITICAL' ? 'ALL' : 'CRITICAL')}
           className={cn(
-            "bg-white border rounded-2xl p-4.5 shadow-2xs hover:shadow-md transition-all cursor-pointer flex items-center justify-between group",
-            selectedSeverity === 'CRITICAL' 
-              ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/20' 
-              : 'border-slate-200/90 hover:border-rose-200'
+            "bg-white border rounded-2xl p-4 shadow-2xs hover:shadow-xs transition-all cursor-pointer flex items-center justify-between",
+            selectedSeverity === 'CRITICAL' ? 'border-rose-500 ring-1 ring-rose-500' : 'border-slate-200'
           )}
         >
-          <div className="space-y-1">
+          <div>
             <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
+              <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
               <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Critical Threats</span>
             </div>
-            <div className="text-2xl font-black text-rose-600 tracking-tight">
+            <div className="text-2xl font-black text-rose-600 mt-1 tracking-tight">
               {criticalCount} <span className="text-xs font-medium text-slate-400">Active</span>
             </div>
-            <p className="text-[11px] text-rose-600/90 font-semibold">Immediate triage required</p>
+            <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Immediate triage required</p>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-600 group-hover:scale-105 transition-transform shrink-0">
-            <ShieldAlert className="w-6 h-6" />
+          <div className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-600 shrink-0">
+            <ShieldAlert className="w-5 h-5" />
           </div>
         </div>
 
@@ -276,52 +254,50 @@ export const AdminAlerts: React.FC = () => {
         <div
           onClick={() => setSelectedSeverity(selectedSeverity === 'HIGH' ? 'ALL' : 'HIGH')}
           className={cn(
-            "bg-white border rounded-2xl p-4.5 shadow-2xs hover:shadow-md transition-all cursor-pointer flex items-center justify-between group",
-            selectedSeverity === 'HIGH' 
-              ? 'border-orange-500 ring-2 ring-orange-500/20 bg-orange-50/20' 
-              : 'border-slate-200/90 hover:border-orange-200'
+            "bg-white border rounded-2xl p-4 shadow-2xs hover:shadow-xs transition-all cursor-pointer flex items-center justify-between",
+            selectedSeverity === 'HIGH' ? 'border-orange-500 ring-1 ring-orange-500' : 'border-slate-200'
           )}
         >
-          <div className="space-y-1">
+          <div>
             <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-orange-500" />
+              <span className="w-2 h-2 rounded-full bg-orange-500" />
               <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">High Risk Alerts</span>
             </div>
-            <div className="text-2xl font-black text-orange-600 tracking-tight">
+            <div className="text-2xl font-black text-orange-600 mt-1 tracking-tight">
               {highCount} <span className="text-xs font-medium text-slate-400">Active</span>
             </div>
-            <p className="text-[11px] text-slate-500 font-semibold">Velocity &amp; OTP spikes</p>
+            <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Velocity &amp; OTP spikes</p>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-orange-50 border border-orange-100 flex items-center justify-center text-orange-600 group-hover:scale-105 transition-transform shrink-0">
-            <AlertTriangle className="w-6 h-6" />
+          <div className="w-10 h-10 rounded-xl bg-orange-50 border border-orange-100 flex items-center justify-center text-orange-600 shrink-0">
+            <AlertTriangle className="w-5 h-5" />
           </div>
         </div>
 
         {/* Metric 3: Value at Risk */}
-        <div className="bg-white border border-slate-200/90 rounded-2xl p-4.5 shadow-2xs flex items-center justify-between">
-          <div className="space-y-1">
+        <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-2xs flex items-center justify-between">
+          <div>
             <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Total Exposure</span>
-            <div className="text-2xl font-black text-slate-900 tracking-tight">
+            <div className="text-2xl font-black text-slate-900 mt-1 tracking-tight">
               ₹{(totalValueAtRisk / 100000).toFixed(2)}L
             </div>
-            <p className="text-[11px] text-slate-500 font-semibold">Across active queue items</p>
+            <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Across active queue</p>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shrink-0">
-            <Activity className="w-6 h-6" />
+          <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shrink-0">
+            <Activity className="w-5 h-5" />
           </div>
         </div>
 
         {/* Metric 4: Queue Status */}
-        <div className="bg-white border border-slate-200/90 rounded-2xl p-4.5 shadow-2xs flex items-center justify-between">
-          <div className="space-y-1">
+        <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-2xs flex items-center justify-between">
+          <div>
             <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Queue Health</span>
-            <div className="text-2xl font-black text-emerald-600 tracking-tight">
+            <div className="text-2xl font-black text-emerald-600 mt-1 tracking-tight">
               8.4 min
             </div>
-            <p className="text-[11px] text-emerald-600 font-semibold">Avg response SLA met</p>
+            <p className="text-[11px] text-emerald-600 mt-0.5 font-medium">Avg response SLA met</p>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
-            <CheckCircle2 className="w-6 h-6" />
+          <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
+            <CheckCircle2 className="w-5 h-5" />
           </div>
         </div>
       </div>
