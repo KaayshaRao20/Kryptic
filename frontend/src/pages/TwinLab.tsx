@@ -3,7 +3,7 @@ import {
   Radar, GitBranch, MousePointer2, Hand, Share2,
   Plus, Maximize2, Layers, Play,
   ChevronRight, ChevronDown,
-  SkipBack, SkipForward, CircleCheck, TriangleAlert, ShieldAlert,
+  SkipBack, SkipForward, CheckCircle2, AlertTriangle, ShieldAlert,
   Zap, Users, X, Sliders, RefreshCw
 } from "lucide-react";
 import { simulationService, type SimulationResultMetrics } from "../services/SimulationService";
@@ -256,7 +256,7 @@ function NodeCard({ node, selected, onClick, is3D }: { node: TwinNodeData; selec
             isAnomalous ? "twin-badge-pulse" : ""
           }`}
         >
-          {node.status === "anomalous" ? <TriangleAlert size={12} /> : <CircleCheck size={13} />}
+          {node.status === "anomalous" ? <AlertTriangle size={12} /> : <CheckCircle2 size={13} />}
         </div>
       </div>
     </div>
