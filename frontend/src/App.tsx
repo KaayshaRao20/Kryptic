@@ -22,10 +22,14 @@ import { ChargebackResponder } from './pages/ChargebackResponder';
 import { ReturnRiskScorer } from './pages/ReturnRiskScorer';
 import { Connectors } from './pages/Connectors';
 import { LandingPage } from './pages/LandingPage';
+import { LivePaymentTest } from './pages/LivePaymentTest';
 
 const TITLE_MAP: Record<string, string> = {
   '/': 'Kryptic | AI Payment Risk & Fraud Intelligence',
   '/landing': 'Kryptic | AI Payment Risk & Fraud Intelligence',
+  '/test-payment': 'Live Payment Test & Razorpay Store | Kryptic',
+  '/store': 'Live Payment Test & Razorpay Store | Kryptic',
+  '/checkout': 'Live Payment Test & Razorpay Store | Kryptic',
   '/admin': 'Overview | Kryptic',
   '/admin/dashboard': 'Overview & Digital Twin | Kryptic',
   '/admin/alerts': 'Alerts Command Queue | Kryptic',
@@ -81,6 +85,9 @@ function App() {
               <Route path="admin/reports" element={<AdminReports />} />
 
               {/* Core Real Defense Routes (Track 02) */}
+              <Route path="test-payment" element={<LivePaymentTest />} />
+              <Route path="store" element={<LivePaymentTest />} />
+              <Route path="checkout" element={<LivePaymentTest />} />
               <Route path="chargebacks" element={<ChargebackResponder />} />
               <Route path="returns" element={<ReturnRiskScorer />} />
               <Route path="connectors" element={<Connectors />} />

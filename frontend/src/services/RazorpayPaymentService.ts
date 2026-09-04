@@ -348,9 +348,73 @@ class RazorpayPaymentService {
     };
   }
 
+  private getCustomStoredPayments(): RazorpayPaymentItem[] {
+    try {
+      if (typeof window !== 'undefined') {
+        const data = localStorage.getItem('kryptic_injected_payments');
+        if (data) {
+          return JSON.parse(data);
+        }
+      }
+    } catch (e) {
+      console.warn('Could not read custom payments:', e);
+    }
+    return [];
+  }
+
+  public recordPayment(payment: Partial<RazorpayPaymentItem>): RazorpayPaymentItem {
+    const safeAmount = Number(payment.amount) || 1000;
+    const item = this.formatItem({
+      id: payment.id || `pay_${Math.random().toString(36).substring(2, 11)}`,
+      amount: safeAmount * 100, // formatItem expects paise or raw
+      currency: payment.currency || 'INR',
+      status: payment.status || 'captured',
+      method: payment.method || 'card',
+      description: payment.description || 'Test Checkout Payment',
+      email: payment.email || 'customer@merchant.com',
+      contact: payment.contact || '+91 98765 43210',
+      card_network: payment.card_network || 'Visa',
+      card_last4: payment.card_last4 || '1007',
+      created_at: new Date().toISOString(),
+      ...payment
+    });
+
+    try {
+      if (typeof window !== 'undefined') {
+        const existing = this.getCustomStoredPayments();
+        const updated = [item, ...existing.filter(p => p.id !== item.id)];
+        localStorage.setItem('kryptic_injected_payments', JSON.stringify(updated));
+        window.dispatchEvent(new CustomEvent('kryptic_payment_created', { detail: item }));
+      }
+    } catch (e) {
+      console.error('Failed to store payment:', e);
+    }
+
+    // Attempt to post to backend if available
+    try {
+      fetch('http://localhost:8000/api/v1/transactions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          transaction_id: item.id,
+          system_id: 'razorpay-primary',
+          entity_id: 'CUST-001',
+          amount: item.amount,
+          currency: item.currency,
+          status: item.status.toUpperCase(),
+          payment_method: item.method
+        })
+      }).catch(() => {});
+    } catch (e) {}
+
+    return item;
+  }
+
   async fetchLivePayments(limit: number = 50, isLive: boolean = true): Promise<RazorpayPaymentItem[]> {
+    const custom = this.getCustomStoredPayments();
+
     if (!isLive) {
-      return SANDBOX_SIMULATION_PAYMENTS;
+      return [...custom, ...SANDBOX_SIMULATION_PAYMENTS];
     }
 
     // Tier 1: Relative Vercel Serverless Function /api/payments
@@ -361,7 +425,8 @@ class RazorpayPaymentService {
       if (res.ok) {
         const data = await res.json();
         if (data.payments && Array.isArray(data.payments) && data.payments.length > 0) {
-          return data.payments.map((p: any) => this.formatItem(p));
+          const formatted = data.payments.map((p: any) => this.formatItem(p));
+          return [...custom, ...formatted];
         }
       }
     } catch (e) {
@@ -376,7 +441,8 @@ class RazorpayPaymentService {
       if (res.ok) {
         const data = await res.json();
         if (data.payments && Array.isArray(data.payments) && data.payments.length > 0) {
-          return data.payments.map((p: any) => this.formatItem(p));
+          const formatted = data.payments.map((p: any) => this.formatItem(p));
+          return [...custom, ...formatted];
         }
       }
     } catch (e) {
@@ -389,16 +455,18 @@ class RazorpayPaymentService {
       if (res.ok) {
         const data = await res.json();
         if (data.payments && Array.isArray(data.payments) && data.payments.length > 0) {
-          return data.payments.map((p: any) => this.formatItem(p));
+          const formatted = data.payments.map((p: any) => this.formatItem(p));
+          return [...custom, ...formatted];
         }
       }
     } catch (e) {
       // Ignore local backend connection errors in production
     }
 
-    // Tier 4: Fallback to verified real transactions cache
-    return LIVE_MERCHANT_PAYMENTS;
+    // Tier 4: Fallback to verified real transactions cache merged with custom
+    return [...custom, ...LIVE_MERCHANT_PAYMENTS];
   }
 }
 
 export const razorpayPaymentService = new RazorpayPaymentService();
+

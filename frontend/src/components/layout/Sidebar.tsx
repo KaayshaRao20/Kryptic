@@ -62,6 +62,13 @@ export const Sidebar: React.FC = () => {
       badgeColor: ''
     },
     {
+      name: 'Live Payment Test',
+      path: '/test-payment',
+      icon: CreditCard,
+      badgeText: 'LIVE',
+      badgeColor: 'bg-emerald-500 text-white font-bold'
+    },
+    {
       name: 'Alerts Queue',
       path: '/admin/alerts',
       icon: Bell,
