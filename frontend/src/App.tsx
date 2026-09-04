@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppLayout } from './components/layout/AppLayout';
 import { CustomerProvider } from './context/CustomerContext';
+import { EnvironmentProvider } from './context/EnvironmentContext';
 import { TwinProvider } from './features/twin/TwinContext';
 
 // Admin Portal Pages
@@ -16,21 +17,33 @@ import TwinLab from './pages/TwinLab';
 import { Payment } from './pages/Payment';
 import { AlertsEmergency } from './pages/AlertsEmergency';
 import { CrossSystemRisk } from './pages/CrossSystemRisk';
+import { ChargebackResponder } from './pages/ChargebackResponder';
+import { ReturnRiskScorer } from './pages/ReturnRiskScorer';
 import { Connectors } from './pages/Connectors';
+import { LandingPage } from './pages/LandingPage';
 
 function App() {
   return (
     <TwinProvider>
-      <BrowserRouter>
-        <CustomerProvider>
-          <Routes>
-            <Route path="/" element={<AppLayout />}>
-              {/* Default landing opens the Admin Portal */}
-              <Route index element={<Navigate to="/admin/dashboard" replace />} />
+      <EnvironmentProvider>
+        <BrowserRouter>
+          <CustomerProvider>
+            <Routes>
+            {/* Public Landing Page (Zero internal business logic, high conversion overview) */}
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/landing" element={<LandingPage />} />
+
+            {/* Main Operational Console inside AppLayout */}
+            <Route element={<AppLayout />}>
               <Route path="admin" element={<Navigate to="/admin/dashboard" replace />} />
               <Route path="admin/dashboard" element={<AdminDashboard />} />
               <Route path="admin/alerts" element={<AdminAlerts />} />
               <Route path="admin/reports" element={<AdminReports />} />
+
+              {/* Core Real Defense Routes (Track 02) */}
+              <Route path="chargebacks" element={<ChargebackResponder />} />
+              <Route path="returns" element={<ReturnRiskScorer />} />
+              <Route path="connectors" element={<Connectors />} />
 
               {/* Customer View Routes (Isolated per Customer ID) */}
               <Route path="customer/:customerId/dashboard" element={<Dashboard />} />
@@ -41,6 +54,8 @@ function App() {
               <Route path="customer/:customerId/alerts" element={<AlertsEmergency />} />
               <Route path="customer/:customerId/explain" element={<ExplainableAI />} />
               <Route path="customer/:customerId/detection" element={<FraudDetection />} />
+              <Route path="customer/:customerId/chargebacks" element={<ChargebackResponder />} />
+              <Route path="customer/:customerId/returns" element={<ReturnRiskScorer />} />
 
               {/* Preserved Direct Routes for Full Backward Compatibility */}
               <Route path="dashboard" element={<Dashboard />} />
@@ -52,7 +67,6 @@ function App() {
               <Route path="twin" element={<TwinLab />} />
               <Route path="alerts" element={<AlertsEmergency />} />
               <Route path="cross-system" element={<CrossSystemRisk />} />
-              <Route path="connectors" element={<Connectors />} />
               <Route path="system/evaluation" element={<AdminReports />} />
               <Route path="system/datasets" element={<AdminReports />} />
               <Route path="system/settings" element={<Connectors />} />
@@ -60,7 +74,8 @@ function App() {
           </Routes>
         </CustomerProvider>
       </BrowserRouter>
-    </TwinProvider>
+    </EnvironmentProvider>
+  </TwinProvider>
   );
 }
 

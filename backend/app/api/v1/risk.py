@@ -1,3 +1,5 @@
+import json
+import os
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
@@ -5,8 +7,59 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas.risk import RiskPredictRequest, RiskPredictResponse, RiskEventResponse
 from app.services.risk_service import risk_service
+from app.services.prediction.base import ModelRegistry
 
 router = APIRouter(prefix="/risk", tags=["Risk Detection"])
+
+MODELS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", "models"))
+
+
+@router.get("/model-card")
+def get_active_model_card():
+    """
+    Returns production proof for the active fraud detector: artifact readiness,
+    holdout metrics, confusion matrix, and operational false-positive cost.
+    """
+    metrics_path = os.path.join(MODELS_DIR, "training_metrics.json")
+    artifact_names = [
+        "xgb_fraud_model.json",
+        "preprocessing_pipeline.joblib",
+        "isolation_forest_anomaly.joblib",
+        "kmeans_clustering.joblib",
+        "feature_schema.json",
+        "training_metrics.json",
+    ]
+    artifacts = {
+        name: os.path.exists(os.path.join(MODELS_DIR, name))
+        for name in artifact_names
+    }
+
+    metrics = {}
+    if os.path.exists(metrics_path):
+        with open(metrics_path, "r", encoding="utf-8") as fp:
+            metrics = json.load(fp)
+
+    holdout = metrics.get("holdout_test_metrics", {})
+    false_positive_review_cost_inr = 65
+    confusion = holdout.get("confusion_matrix", {})
+    false_positives = int(confusion.get("false_positives", 0))
+
+    return {
+        "status": "operational" if all(artifacts.values()) else "degraded",
+        "active_model_version": ModelRegistry.get_active_version() or "v2.0.0-xgb-paysim",
+        "loss_class": "payment_fraud_spike_detection",
+        "dataset": metrics.get("dataset", "PaySim Financial Benchmark"),
+        "train_samples": metrics.get("train_samples"),
+        "test_samples": metrics.get("test_samples"),
+        "features_count": metrics.get("features_count"),
+        "artifacts": artifacts,
+        "holdout_metrics": holdout,
+        "operational_cost": {
+            "false_positive_review_cost_inr": false_positive_review_cost_inr,
+            "holdout_false_positive_cost_inr": false_positives * false_positive_review_cost_inr,
+            "decision_policy": "APPROVE below 25%, REVIEW 25-49%, CHALLENGE_2FA 50-74%, DECLINE 75%+",
+        },
+    }
 
 
 @router.post("/predict", response_model=RiskPredictResponse)

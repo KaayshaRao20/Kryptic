@@ -42,6 +42,14 @@ class Settings(BaseSettings):
     DEFAULT_SIMULATION_TPS: int = 5
     MAX_SIMULATION_EVENTS: int = 1000
 
+    # Razorpay Integration
+    RAZORPAY_KEY_ID: str = os.getenv("RAZORPAY_KEY_ID", "rzp_test_kryptic_demo")
+    RAZORPAY_KEY_SECRET: str = os.getenv("RAZORPAY_KEY_SECRET", "kryptic_secret_demo")
+    RAZORPAY_WEBHOOK_SECRET: str = os.getenv("RAZORPAY_WEBHOOK_SECRET", "kryptic_whsec_demo")
+
+    # Gemini AI Integration
+    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
+
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
     def assemble_cors_origins(cls, v: Union[str, List[str]]) -> List[str]:

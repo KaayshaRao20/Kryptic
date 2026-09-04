@@ -9,6 +9,10 @@ from app.api.v1.payment_systems import router as payment_systems_router
 from app.api.v1.simulation import router as simulation_router
 from app.api.v1.metrics import router as metrics_router
 from app.api.v1.ws import router as ws_router
+from app.api.v1.chargebacks import router as chargebacks_router
+from app.api.v1.returns import router as returns_router
+from app.api.v1.razorpay_routes import router as razorpay_router
+from app.api.v1.settings import router as settings_router
 
 api_v1_router = APIRouter()
 
@@ -22,3 +26,7 @@ api_v1_router.include_router(payment_systems_router)
 api_v1_router.include_router(simulation_router)
 api_v1_router.include_router(metrics_router)
 api_v1_router.include_router(ws_router)
+api_v1_router.include_router(chargebacks_router)
+api_v1_router.include_router(returns_router)
+api_v1_router.include_router(razorpay_router)
+api_v1_router.include_router(settings_router)

@@ -17,7 +17,7 @@ export default {
         riskRed: '#B95D63',
       },
       fontFamily: {
-        sans: ['Inter', 'sans-serif'], 
+        sans: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', 'sans-serif'], 
       },
       keyframes: {
         dash: {

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   Sparkles, ChevronDown, ShieldCheck, ShieldAlert,
   Play, Info, Download, HelpCircle, Zap, Users, Activity,
@@ -6,9 +6,9 @@ import {
   Loader2, BarChart2, Target
 } from 'lucide-react';
 import {
-  analyzeFraud, DEFAULT_PARAMS, getNextAutoFillProfile,
+  analyzeFraud, analyzeFraudAsync, DEFAULT_PARAMS, fetchModelCard, getNextAutoFillProfile,
   TRANSACTION_TYPE_OPTIONS, PAYMENT_CHANNEL_OPTIONS, TIME_OF_DAY_OPTIONS,
-  type TransactionParams, type FraudPrediction, type RiskLevel, type FactorLevel,
+  type TransactionParams, type FraudPrediction, type RiskLevel, type FactorLevel, type ModelCard,
 } from '../services/FraudDetectionService';
 import { getRecommendation, getInjectionRecommendation, type AIRecommendation, type InjectionAIRecommendation } from '../services/RecommendationService';
 import { runInjectionSimulation, type InjectionConfig, type SimulationOutput, type PaymentComponent, type TimelineSeverity } from '../services/InjectionSimulationService';
@@ -47,6 +47,121 @@ const SCENARIO_OPTS = [
   { key: 'coordinated',  title: 'Coordinated Activity', desc: 'Multiple entities acting together',       Icon: Users,       tone: { card: 'border-violet-300 bg-violet-50', icon: 'text-violet-500', iconBg: 'bg-violet-100' } },
   { key: 'behavioral',   title: 'Behavioral Anomaly',   desc: 'Unusual user behaviour patterns',         Icon: Activity,    tone: { card: 'border-teal-300 bg-teal-50',  icon: 'text-teal-500', iconBg: 'bg-teal-100'   } },
 ];
+
+const inr = new Intl.NumberFormat('en-IN');
+
+const fallbackModelCard: ModelCard = {
+  status: 'degraded',
+  active_model_version: 'v2.0.0-xgb-paysim',
+  loss_class: 'payment_fraud_spike_detection',
+  dataset: 'PaySim Financial Benchmark',
+  train_samples: 240800,
+  test_samples: 60200,
+  features_count: 17,
+  artifacts: {},
+  holdout_metrics: {
+    accuracy: 0.999884,
+    precision: 0.983122,
+    recall: 0.987288,
+    f1: 0.985201,
+    roc_auc: 0.998922,
+    pr_auc: 0.992663,
+    false_positive_rate: 0.000067,
+    false_negative_rate: 0.012712,
+    avg_inference_latency_ms: 0.503,
+    p95_inference_latency_ms: 0.698,
+    confusion_matrix: {
+      true_negatives: 59960,
+      false_positives: 4,
+      false_negatives: 3,
+      true_positives: 233,
+    },
+  },
+  operational_cost: {
+    false_positive_review_cost_inr: 65,
+    holdout_false_positive_cost_inr: 260,
+    decision_policy: 'APPROVE below 25%, REVIEW 25-49%, CHALLENGE_2FA 50-74%, DECLINE 75%+',
+  },
+};
+
+function pct(value: number, digits = 2) {
+  return `${(value * 100).toFixed(digits)}%`;
+}
+
+function ModelProofStrip({ modelCard }: { modelCard: ModelCard }) {
+  const m = modelCard.holdout_metrics;
+  const online = modelCard.status === 'operational';
+  const stats = [
+    { label: 'Precision', value: pct(m.precision), color: 'text-emerald-600' },
+    { label: 'Recall', value: pct(m.recall), color: 'text-blue-600' },
+    { label: 'FPR', value: pct(m.false_positive_rate, 4), color: 'text-amber-600' },
+    { label: 'FP Cost', value: `INR ${inr.format(modelCard.operational_cost.holdout_false_positive_cost_inr)}`, color: 'text-slate-800' },
+  ];
+
+  return (
+    <div className="grid grid-cols-12 gap-3 mb-5">
+      <div className="col-span-4 bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <div className="text-[11px] font-bold tracking-wider text-gray-400 uppercase">Production Model</div>
+            <div className="text-[13px] font-black text-gray-900 mt-1">{modelCard.active_model_version}</div>
+          </div>
+          <span className={`flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded-full border ${online ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-amber-700 bg-amber-50 border-amber-200'}`}>
+            {online ? <CheckCircle size={12} /> : <Clock size={12} />}
+            {online ? 'Live ML' : 'Report Mode'}
+          </span>
+        </div>
+        <div className="text-[11.5px] text-gray-500 mt-2">
+          {inr.format(modelCard.test_samples)} untouched holdout transactions, {modelCard.features_count} engineered features.
+        </div>
+      </div>
+
+      <div className="col-span-8 grid grid-cols-4 gap-3">
+        {stats.map((s) => (
+          <div key={s.label} className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+            <div className="text-[11px] font-bold tracking-wider text-gray-400 uppercase">{s.label}</div>
+            <div className={`text-[20px] font-black mt-1 ${s.color}`}>{s.value}</div>
+            <div className="text-[10.5px] text-gray-400 mt-1">Held-out validation</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ValidationPanel({ modelCard, prediction }: { modelCard: ModelCard; prediction: FraudPrediction }) {
+  const cm = modelCard.holdout_metrics.confusion_matrix;
+  const sourceOnline = prediction.source === 'backend_ml';
+  const rows = [
+    { label: 'True Positives', value: cm.true_positives, tone: 'text-emerald-600' },
+    { label: 'False Positives', value: cm.false_positives, tone: 'text-amber-600' },
+    { label: 'False Negatives', value: cm.false_negatives, tone: 'text-rose-600' },
+    { label: 'True Negatives', value: cm.true_negatives, tone: 'text-slate-700' },
+  ];
+
+  return (
+    <div className="rounded-xl border border-slate-200 bg-slate-50 p-3.5">
+      <div className="flex items-center justify-between gap-2 mb-3">
+        <div className="text-[11px] font-bold tracking-wider text-slate-500 uppercase">Holdout Proof</div>
+        <span className={`flex items-center gap-1 text-[10.5px] font-bold px-2 py-0.5 rounded-full border ${sourceOnline ? 'text-emerald-700 bg-white border-emerald-200' : 'text-amber-700 bg-white border-amber-200'}`}>
+          {sourceOnline ? <CheckCircle size={11} /> : <Clock size={11} />}
+          {sourceOnline ? 'Backend ML scored' : 'Offline fallback'}
+        </span>
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        {rows.map((row) => (
+          <div key={row.label} className="rounded-lg bg-white border border-slate-100 px-2.5 py-2">
+            <div className="text-[10px] text-slate-400 font-semibold">{row.label}</div>
+            <div className={`text-[15px] font-black ${row.tone}`}>{inr.format(row.value)}</div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-3 pt-2 border-t border-slate-200 text-[11px] text-slate-500 leading-snug">
+        Review cost: INR {inr.format(modelCard.operational_cost.false_positive_review_cost_inr)} per false alert. Policy: {modelCard.operational_cost.decision_policy}
+      </div>
+    </div>
+  );
+}
 
 /* ─── Sub-components ──────────────────────────────────────────── */
 
@@ -236,6 +351,7 @@ export const FraudDetection: React.FC = () => {
   const [prediction, setPrediction] = useState<FraudPrediction | null>(null);
   const [aiRec, setAiRec] = useState<AIRecommendation | null>(null);
   const [isLoadingRec, setIsLoadingRec] = useState(false);
+  const [modelCard, setModelCard] = useState<ModelCard>(fallbackModelCard);
 
   /* Tab state */
   const [activeTab, setActiveTab] = useState<'detection' | 'lab'>('detection');
@@ -260,20 +376,36 @@ export const FraudDetection: React.FC = () => {
   const [timelineVisible, setTimelineVisible] = useState(0); // # events shown progressively
 
   /* ─── Handlers ──────────────────────────────────────────────── */
+  useEffect(() => {
+    let mounted = true;
+    fetchModelCard().then((card) => {
+      if (mounted && card) {
+        setModelCard(card);
+      }
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   const handleAutoFill = useCallback(() => {
     setParams(getNextAutoFillProfile());
     setPrediction(null);
     setAiRec(null);
   }, []);
 
-  const handleAnalyze = useCallback(() => {
+  const handleAnalyze = useCallback(async () => {
     setIsAnalyzing(true);
     setAiRec(null);
-    setTimeout(() => {
+    try {
+      const result = await analyzeFraudAsync(params);
+      setPrediction(result);
+    } catch (e) {
       const result = analyzeFraud(params);
       setPrediction(result);
+    } finally {
       setIsAnalyzing(false);
-    }, 900);
+    }
   }, [params]);
 
   const handleReset = useCallback(() => {
@@ -344,7 +476,7 @@ export const FraudDetection: React.FC = () => {
       <div className="flex items-start justify-between mb-6">
         <div>
           <h1 className="text-[22px] font-bold text-gray-900 tracking-tight">Fraud Detection &amp; Lab</h1>
-          <p className="text-[13px] text-gray-400 mt-0.5">Interactive model sensitivity testing</p>
+          <p className="text-[13px] text-gray-400 mt-0.5">Payment fraud-spike detector with held-out precision, recall, and false-positive cost</p>
         </div>
         <div className="flex items-center gap-3">
           <button className="flex items-center gap-1.5 text-[13px] text-gray-500 hover:text-gray-700 font-medium">
@@ -355,6 +487,8 @@ export const FraudDetection: React.FC = () => {
           </button>
         </div>
       </div>
+
+      <ModelProofStrip modelCard={modelCard} />
 
       {/* ── Top two-column layout ─────────────────────────────────── */}
       <div className="grid grid-cols-12 gap-5 items-start">
@@ -450,8 +584,9 @@ export const FraudDetection: React.FC = () => {
                 {prediction && (
                   <div className="flex items-center gap-2">
                     <span className="text-[12px] text-gray-400">Run ID: <span className="font-mono text-gray-700">{prediction.predictionId}</span></span>
-                    <span className="flex items-center gap-1 text-[11.5px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                      <CheckCircle size={11} /> Completed
+                    <span className={`flex items-center gap-1 text-[11.5px] font-semibold px-2 py-0.5 rounded-full border ${prediction.source === 'backend_ml' ? 'text-emerald-600 bg-emerald-50 border-emerald-200' : 'text-amber-600 bg-amber-50 border-amber-200'}`}>
+                      {prediction.source === 'backend_ml' ? <CheckCircle size={11} /> : <Clock size={11} />}
+                      {prediction.source === 'backend_ml' ? 'Live ML' : 'Fallback'}
                     </span>
                   </div>
                 )}
@@ -509,9 +644,9 @@ export const FraudDetection: React.FC = () => {
 
                   {/* Model Evidence + AI Recommendation */}
                   <div className="col-span-4 space-y-4 border-l border-gray-100 pl-5">
-                    {/* SHAP Evidence */}
+                    {/* Model Evidence */}
                     <div>
-                      <div className="text-[11px] font-bold tracking-wider text-gray-500 uppercase mb-2">Model Evidence (Mock SHAP)</div>
+                      <div className="text-[11px] font-bold tracking-wider text-gray-500 uppercase mb-2">Model Evidence</div>
                       <div className="space-y-1.5">
                         {prediction.modelEvidence.map((e) => (
                           <div key={e.name} className="flex items-center justify-between text-[12.5px]">
@@ -521,6 +656,8 @@ export const FraudDetection: React.FC = () => {
                         ))}
                       </div>
                     </div>
+
+                    <ValidationPanel modelCard={modelCard} prediction={prediction} />
 
                     {/* AI Recommendation box */}
                     <div className="bg-blue-50 rounded-xl border border-blue-100 p-3.5">

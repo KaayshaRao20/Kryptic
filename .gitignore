@@ -46,3 +46,5 @@ Thumbs.db
 # Large Datasets (GitHub rejects individual files >100MB, e.g. 680MB/1.9GB raw CSVs)
 *.csv
 Dataset/*.csv
+
+.vercel

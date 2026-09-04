@@ -77,7 +77,7 @@ export const CustomerHeaderBanner: React.FC = () => {
           </div>
 
           <div className="text-[11px] text-gray-400 border-l border-gray-200 pl-3 hidden xl:block">
-            Isolated View • {selectedCustomer.totalTransactions.toLocaleString()} Customer Txns
+            Isolated View • {(selectedCustomer?.totalTransactions ?? 0).toLocaleString()} Customer Txns
           </div>
         </div>
       </div>

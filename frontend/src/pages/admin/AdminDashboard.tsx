@@ -3,878 +3,680 @@ import { useNavigate } from 'react-router-dom';
 import {
   CreditCard,
   IndianRupee,
+  Shield,
   ShieldAlert,
   TrendingUp,
-  Bell,
-  ArrowRight,
-  Layers,
-  Search,
+  RefreshCw,
+  Calendar,
+  CheckCircle2,
+  XCircle,
+  MoreVertical,
+  SlidersHorizontal,
   ChevronDown,
-  Activity,
-  User
+  ArrowRight,
+  Sparkles,
+  Search,
+  ExternalLink,
+  Lock,
+  Layers,
+  FileText
 } from 'lucide-react';
 import {
   ResponsiveContainer,
-  BarChart,
-  Bar,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   PieChart,
   Pie,
-  Cell
+  Cell,
+  AreaChart,
+  Area
 } from 'recharts';
-import { useCustomer } from '../../context/CustomerContext';
-import { IndiaRiskHeatmap } from '../../components/admin/IndiaRiskHeatmap';
+import { useEnvironment } from '../../context/EnvironmentContext';
+import { razorpayPaymentService, type RazorpayPaymentItem } from '../../services/RazorpayPaymentService';
 import { cn } from '../../lib/utils';
 
-// Hourly stacked transaction data matching the reference chart
-const ACTIVITY_DATA_24H = [
-  { time: '00:00', normal: 12000, highRisk: 1200, fraud: 180 },
-  { time: '01:00', normal: 13500, highRisk: 1100, fraud: 150 },
-  { time: '02:00', normal: 15000, highRisk: 1400, fraud: 220 },
-  { time: '03:00', normal: 14000, highRisk: 1300, fraud: 190 },
-  { time: '04:00', normal: 13000, highRisk: 1250, fraud: 180 },
-  { time: '05:00', normal: 16000, highRisk: 1500, fraud: 230 },
-  { time: '06:00', normal: 18000, highRisk: 1600, fraud: 260 },
-  { time: '07:00', normal: 21000, highRisk: 1800, fraud: 290 },
-  { time: '08:00', normal: 25000, highRisk: 2100, fraud: 340 },
-  { time: '09:00', normal: 31000, highRisk: 2400, fraud: 380 },
-  { time: '10:00', normal: 36000, highRisk: 2700, fraud: 420 },
-  { time: '11:00', normal: 39000, highRisk: 2900, fraud: 460 },
-  { time: '12:00', normal: 40328, highRisk: 2043, fraud: 312, highlighted: true }, // Peak annotated
-  { time: '13:00', normal: 38000, highRisk: 2600, fraud: 390 },
-  { time: '14:00', normal: 32000, highRisk: 2300, fraud: 350 },
-  { time: '15:00', normal: 27000, highRisk: 2000, fraud: 310 },
-  { time: '16:00', normal: 22000, highRisk: 1700, fraud: 270 },
-  { time: '17:00', normal: 19000, highRisk: 1500, fraud: 240 },
-  { time: '18:00', normal: 23000, highRisk: 1900, fraud: 290 },
-  { time: '19:00', normal: 26000, highRisk: 2100, fraud: 330 },
-  { time: '20:00', normal: 22000, highRisk: 1800, fraud: 270 },
-  { time: '21:00', normal: 17000, highRisk: 1400, fraud: 220 },
-  { time: '22:00', normal: 15000, highRisk: 1300, fraud: 200 },
-  { time: '23:00', normal: 14000, highRisk: 1200, fraud: 180 },
+// Donut Chart Data
+const DONUT_DATA = [
+  { name: 'Low Risk', value: 1189234, pct: '83.3%', color: '#10B981' },
+  { name: 'Medium Risk', value: 188424, pct: '13.2%', color: '#F59E0B' },
+  { name: 'High Risk', value: 50842, pct: '3.5%', color: '#EF4444' },
 ];
 
-// Transaction Channels Donut Data
-const CHANNEL_DATA = [
-  { name: 'UPI', value: 42.6, color: '#1D4ED8' },
-  { name: 'Cards', value: 24.8, color: '#0284C7' },
-  { name: 'Net Banking', value: 15.4, color: '#F59E0B' },
-  { name: 'Wallets', value: 8.7, color: '#8B5CF6' },
-  { name: 'Others', value: 8.5, color: '#94A3B8' },
+// 7-day Multi-line Trend (Total, High Risk, Disputes)
+const TREND_CHART_DATA = [
+  { date: 'Aug 29', total: 102000, highRisk: 3500, disputes: 120 },
+  { date: 'Aug 30', total: 148000, highRisk: 4200, disputes: 140 },
+  { date: 'Aug 31', total: 195000, highRisk: 4900, disputes: 160 },
+  { date: 'Sep 1', total: 185000, highRisk: 4700, disputes: 150 },
+  { date: 'Sep 2', total: 275000, highRisk: 5200, disputes: 180 },
+  { date: 'Sep 3', total: 270000, highRisk: 5100, disputes: 175 },
+  { date: 'Sep 4', total: 320000, highRisk: 5800, disputes: 190 },
 ];
 
-// Fraud Detected by Layer data
-const LAYER_BREAKDOWN = [
-  { name: 'Entry Gateway', pct: 28 },
-  { name: 'Authentication', pct: 22 },
-  { name: 'Risk Engine', pct: 20 },
-  { name: 'Payment Router', pct: 14 },
-  { name: 'Processing', pct: 8 },
-  { name: 'Authorization', pct: 5 },
-  { name: 'Settlement', pct: 3 },
+// Sparkline Mini Data
+const SPARKLINE_EVALUATED = [
+  { v: 12 }, { v: 15 }, { v: 18 }, { v: 14 }, { v: 22 }, { v: 28 }, { v: 34 }
 ];
-
-// System Health Services Data
-const HEALTH_SERVICES = [
-  { name: 'Payment Gateway', latency: '42ms', status: 'Healthy' },
-  { name: 'Authentication Service', latency: '36ms', status: 'Healthy' },
-  { name: 'Risk Engine', latency: '28ms', status: 'Healthy' },
-  { name: 'Payment Router', latency: '40ms', status: 'Healthy' },
-  { name: 'Database', latency: '22ms', status: 'Healthy' },
-  { name: 'ML Inference', latency: '18ms', status: 'Healthy' },
+const SPARKLINE_CHECKED = [
+  { v: 40 }, { v: 35 }, { v: 45 }, { v: 60 }, { v: 55 }, { v: 70 }, { v: 85 }
 ];
-
-// Recent High Risk Alerts Data (Matching Screenshot)
-const RECENT_ALERTS = [
-  {
-    id: 'alt-1',
-    time: '08:41 AM',
-    customerId: 'CUST-001',
-    customerName: 'Aarav Mehta',
-    event: 'Unusual Payment Spike',
-    amount: '₹2,84,500',
-    riskLevel: 'Critical',
-    status: 'Open',
-    actionText: 'Investigate →',
-    badgeVariant: 'critical',
-  },
-  {
-    id: 'alt-2',
-    time: '08:28 AM',
-    customerId: 'CUST-027',
-    customerName: 'Priya Sharma',
-    event: 'Multiple OTP Failures',
-    amount: '₹98,200',
-    riskLevel: 'Critical',
-    status: 'Open',
-    actionText: 'Investigate →',
-    badgeVariant: 'critical',
-  },
-  {
-    id: 'alt-3',
-    time: '08:15 AM',
-    customerId: 'CUST-104',
-    customerName: 'Rohan Verma',
-    event: 'New Device Login',
-    amount: '₹67,890',
-    riskLevel: 'High',
-    status: 'Open',
-    actionText: 'Investigate →',
-    badgeVariant: 'high',
-  },
-  {
-    id: 'alt-4',
-    time: '08:07 AM',
-    customerId: 'CUST-317',
-    customerName: 'Ananya Iyer',
-    event: 'Velocity Anomaly',
-    amount: '₹45,200',
-    riskLevel: 'High',
-    status: 'Open',
-    actionText: 'Investigate →',
-    badgeVariant: 'high',
-  },
-  {
-    id: 'alt-5',
-    time: '07:52 AM',
-    customerId: 'CUST-412',
-    customerName: 'Vikram Malhotra',
-    event: 'Declined Txns Spike',
-    amount: '₹1,12,300',
-    riskLevel: 'Medium',
-    status: 'Monitoring',
-    actionText: 'Inspect →',
-    badgeVariant: 'medium',
-  },
+const SPARKLINE_BLOCKED = [
+  { v: 45 }, { v: 40 }, { v: 38 }, { v: 35 }, { v: 32 }, { v: 28 }, { v: 24 }
+];
+const SPARKLINE_DISPUTE = [
+  { v: 10 }, { v: 14 }, { v: 12 }, { v: 18 }, { v: 15 }, { v: 22 }, { v: 26 }
 ];
 
 export const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { selectCustomer } = useCustomer();
+  const { isLive } = useEnvironment();
 
-  const [timeframe, setTimeframe] = useState<'24H' | '7D' | '30D' | 'Live'>('24H');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [currentTime, setCurrentTime] = useState('Wed, 3 Sep 2026  08:43 AM');
+  const [dateRange, setDateRange] = useState('Sep 1, 2026 - Sep 4, 2026');
+  const [livePayments, setLivePayments] = useState<RazorpayPaymentItem[]>([]);
+  const [loadingPayments, setLoadingPayments] = useState(false);
+  const [selectedPayment, setSelectedPayment] = useState<RazorpayPaymentItem | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Fetch optional backend stats if available
-  const [stats, setStats] = useState({
-    totalCustomers: '24,532',
-    totalTransactions: '1,842,773',
-    transactionValue: '₹ 48.32 Cr',
-    fraudDetected: '4,291',
-    fraudRate: '98.7%',
-    activeAlerts: '37',
-    criticalAlerts: '12',
-    highAlerts: '15',
-  });
-
-  useEffect(() => {
-    // Format live time
-    const updateDate = () => {
-      const now = new Date();
-      const options: Intl.DateTimeFormatOptions = {
-        weekday: 'short',
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true,
-      };
-      // Format as "Wed, 3 Sep 2026  08:43 AM"
-      const str = now.toLocaleDateString('en-US', options).replace(',', '');
-      setCurrentTime(str);
-    };
-    updateDate();
-    const interval = setInterval(updateDate, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Sync with live backend API if available
-  useEffect(() => {
-    const fetchBackend = async () => {
-      try {
-        const res = await fetch('http://localhost:8000/api/v1/transactions/stats/overview');
-        if (res.ok) {
-          const data = await res.json();
-          if (data.total_transactions) {
-            setStats(prev => ({
-              ...prev,
-              totalTransactions: data.total_transactions.toLocaleString(),
-              fraudDetected: data.fraud_count ? data.fraud_count.toLocaleString() : prev.fraudDetected,
-            }));
-          }
-        }
-      } catch (err) {
-        // Fallback gracefully to high-precision reference snapshot
-      }
-    };
-    fetchBackend();
-  }, []);
-
-  const handleInvestigate = (customerId: string) => {
-    selectCustomer(customerId);
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3500);
   };
 
+  const loadLivePayments = async (isManual: boolean = false) => {
+    if (isManual) setLoadingPayments(true);
+    try {
+      const items = await razorpayPaymentService.fetchLivePayments(50, isLive);
+      if (items && items.length > 0) {
+        setLivePayments(items);
+        if (isManual) {
+          showToast(isLive ? `Live merchant synced (${items.length} txns)` : 'Sandbox simulation stream synced');
+        }
+      }
+    } catch (e) {
+      if (isManual) showToast('Synced cached ledger');
+    } finally {
+      if (isManual) setLoadingPayments(false);
+    }
+  };
+
+  useEffect(() => {
+    loadLivePayments(false);
+
+    // Automatic real-time polling every 12 seconds in live mode
+    if (isLive) {
+      const interval = setInterval(() => {
+        loadLivePayments(false);
+      }, 12000);
+      return () => clearInterval(interval);
+    }
+  }, [isLive]);
+
+  // Dynamic calculations from live payments
+  const liveTotalVolume = livePayments.reduce((acc, p) => acc + (p.amount || 0), 0);
+  const liveCount = livePayments.length;
+  const liveBlockedItems = livePayments.filter(p => p.status === 'failed' || p.risk_level === 'CRITICAL' || p.risk_level === 'HIGH');
+  const liveBlockedVolume = liveBlockedItems.reduce((acc, p) => acc + (p.amount || 0), 0);
+  const liveBlockedCount = liveBlockedItems.length;
+
+  const lowCount = livePayments.filter(p => p.risk_level === 'LOW').length;
+  const medCount = livePayments.filter(p => p.risk_level === 'MEDIUM').length;
+  const highCount = liveBlockedCount;
+  const totalCount = livePayments.length || 1;
+
+  // Dynamic Donut Data for Live vs Sandbox
+  const donutData = isLive && livePayments.length > 0 ? [
+    { name: 'Low Risk', value: lowCount, pct: `${((lowCount / totalCount) * 100).toFixed(1)}%`, color: '#10B981' },
+    { name: 'Medium Risk', value: medCount, pct: `${((medCount / totalCount) * 100).toFixed(1)}%`, color: '#F59E0B' },
+    { name: 'High Risk', value: highCount, pct: `${((highCount / totalCount) * 100).toFixed(1)}%`, color: '#EF4444' },
+  ] : DONUT_DATA;
+
   return (
-    <div className="space-y-5 max-w-[1600px] mx-auto pb-10 text-slate-800 antialiased">
-      {/* ─────────────────────────────────────────────────────────────
-          1. TOP NAVIGATION & HEADER BAR
-         ───────────────────────────────────────────────────────────── */}
-      <header className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 pb-1">
-        {/* Left: Admin Greeting */}
+    <div className="space-y-6 max-w-[1600px] mx-auto pb-12 text-slate-800 antialiased font-sans">
+      {/* Toast Feedback */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2.5 animate-in slide-in-from-bottom-2">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
+      {/* ─── 1. TOP HEADER ROW ─── */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl lg:text-2xl font-black text-gray-900 tracking-tight flex items-center gap-2">
-            <span>Hello Admin</span>
-            <span className="text-2xl">👋</span>
-          </h1>
-          <p className="text-xs text-gray-500 font-medium mt-0.5">
-            Commanding a safer payments ecosystem
-          </p>
-        </div>
-
-        {/* Center: Global Search Bar */}
-        <div className="w-full xl:max-w-md">
-          <div className="relative flex items-center">
-            <Search className="w-4 h-4 text-gray-400 absolute left-3.5 pointer-events-none" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search customers, transactions, alerts..."
-              className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200/90 rounded-full text-xs text-gray-800 placeholder-gray-400 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-2xs"
-            />
-          </div>
-        </div>
-
-        {/* Right: Status, Time, Alerts, Profile */}
-        <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
-          {/* Status Badge */}
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200/90 rounded-full text-xs font-semibold text-gray-700 shadow-2xs shrink-0">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[11px]">System Online</span>
-          </div>
-
-          {/* Time Badge */}
-          <div className="flex items-center gap-1 px-3 py-1.5 bg-white border border-gray-200/90 rounded-full text-[11px] font-medium text-gray-600 shadow-2xs shrink-0">
-            <span>{currentTime}</span>
-          </div>
-
-          {/* Alert Bell */}
-          <button
-            onClick={() => navigate('/admin/alerts')}
-            className="w-8 h-8 rounded-full bg-white border border-gray-200/90 flex items-center justify-center text-gray-600 hover:text-gray-900 hover:bg-gray-50 relative transition-all shadow-2xs shrink-0 cursor-pointer"
-            title="Active Risk Alerts"
-          >
-            <Bell className="w-4 h-4" />
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full text-[9px] font-bold flex items-center justify-center border-2 border-white">
-              12
+          <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase block">
+            RISK MANAGEMENT
+          </span>
+          <div className="flex items-center gap-3 mt-1">
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+              Risk Overview
+            </h1>
+            <span className={cn(
+              "text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1.5 shadow-2xs",
+              isLive
+                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                : "bg-amber-50 text-amber-800 border border-amber-200"
+            )}>
+              <span className={cn("w-2 h-2 rounded-full", isLive ? "bg-emerald-500 animate-pulse" : "bg-amber-500")} />
+              <span>{isLive ? 'Live Merchant Feed' : 'Sandbox Test Mode'}</span>
             </span>
-          </button>
-
-          {/* Admin ID & Profile Badge */}
-          <div className="flex items-center gap-2 bg-white border border-gray-200/90 rounded-full pl-1.5 pr-3 py-1 shadow-2xs hover:border-gray-300 transition-all cursor-pointer">
-            <div className="w-7 h-7 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0">
-              AD
-            </div>
-            <div className="flex flex-col text-left leading-tight pr-0.5">
-              <div className="flex items-center gap-1">
-                <span className="text-[9px] font-bold text-gray-400 uppercase">Admin ID</span>
-                <span className="text-[11px] font-bold text-gray-900">ADM-001</span>
-              </div>
-              <span className="text-[10px] text-gray-500">Super Admin</span>
-            </div>
-            <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
           </div>
-        </div>
-      </header>
-
-      {/* ─────────────────────────────────────────────────────────────
-          2. ENTERPRISE RISK COMMAND CENTER HERO BANNER
-         ───────────────────────────────────────────────────────────── */}
-      <div className="bg-gradient-to-r from-white via-blue-50/25 to-blue-100/50 rounded-2xl border border-gray-200/80 p-5 lg:p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 relative overflow-hidden">
-        {/* Subtle Decorative Ambient Wave */}
-        <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-gradient-to-l from-blue-100/40 to-transparent pointer-events-none" />
-
-        <div className="relative z-10">
-          <h2 className="text-2xl lg:text-3xl font-black text-gray-900 tracking-tight">
-            Enterprise Risk Command Center
-          </h2>
-          <p className="text-xs lg:text-sm text-gray-500 mt-1">
-            Real-time monitoring across all customers, merchants and payment routing layers.
+          <p className="text-xs text-slate-400 font-medium mt-1">
+            {isLive
+              ? 'Monitoring real-time transactions from Razorpay ID: rzp_test_TWpQWcihNk3rD9'
+              : 'Simulating transaction volume and test dispute rebuttals'
+            }
           </p>
         </div>
 
-        <div className="flex items-center gap-3 relative z-10 shrink-0">
-          {/* Active ML Fraud Engine Chip */}
-          <div className="bg-white/90 backdrop-blur-xs border border-gray-200/90 rounded-xl px-3.5 py-2 flex items-center gap-2.5 shadow-2xs">
-            <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600">
-              <Layers className="w-4 h-4" />
-            </div>
-            <div className="flex flex-col text-left">
-              <span className="text-xs font-bold text-gray-900 leading-tight">
-                ML Fraud Engine : Active
-              </span>
-              <span className="text-[10px] font-medium text-gray-500 leading-tight">
-                XGBoost v2.0
-              </span>
-            </div>
+        {/* Action Controls */}
+        <div className="flex items-center gap-3">
+          {/* Date Picker Button */}
+          <div className="inline-flex items-center gap-2.5 px-3.5 py-2 bg-white border border-slate-200/90 rounded-xl text-xs font-semibold text-slate-700 shadow-2xs cursor-pointer hover:bg-slate-50">
+            <Calendar className="w-3.5 h-3.5 text-slate-400" />
+            <span>{dateRange}</span>
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
           </div>
 
-          {/* View Live Alerts Button */}
+          {/* Sync Payments */}
           <button
-            onClick={() => navigate('/admin/alerts')}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-xl shadow-xs transition-colors cursor-pointer"
+            onClick={() => loadLivePayments(true)}
+            disabled={loadingPayments}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl shadow-xs transition-colors cursor-pointer disabled:opacity-75"
           >
-            <span>View Live Alerts</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            <RefreshCw className={cn("w-3.5 h-3.5", loadingPayments && "animate-spin")} />
+            <span>{loadingPayments ? 'Syncing...' : 'Sync Payments'}</span>
           </button>
         </div>
       </div>
 
-      {/* ─────────────────────────────────────────────────────────────
-          3. PRIMARY KEY PERFORMANCE INDICATOR (KPI) CARDS (6 CARDS)
-         ───────────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5">
-        {/* Card 1: Total Customers */}
-        <div className="bg-white p-4 rounded-2xl border border-gray-200/80 shadow-xs hover:border-gray-300 transition-all flex flex-col justify-between">
-          <div className="flex items-center gap-2 text-gray-600">
-            <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600">
-              <User className="w-4 h-4" />
+      {/* ─── 2. 4 PRIMARY KPI CARDS WITH SPARKLINES ─── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Card 1: Total Evaluated Volume */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs flex flex-col justify-between relative overflow-hidden">
+          <div className="flex items-start justify-between">
+            <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
+              <CreditCard className="w-5 h-5" />
             </div>
-            <span className="text-xs font-semibold text-gray-600">Total Customers</span>
+            <div className="w-20 h-8">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={SPARKLINE_EVALUATED}>
+                  <Line type="monotone" dataKey="v" stroke="#3B82F6" strokeWidth={2} dot={false} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           </div>
           <div className="mt-3">
-            <div className="text-2xl font-black text-gray-900 tracking-tight">
-              {stats.totalCustomers}
+            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">
+              Total Evaluated Volume
+            </span>
+            <div className="text-2xl font-black text-slate-900 mt-0.5 font-mono">
+              {isLive ? `₹${liveTotalVolume.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '₹1.42 Cr'}
             </div>
-            <div className="mt-1 flex items-center gap-1 text-[11px] font-semibold text-emerald-600">
-              <span>↑ 4.2%</span>
-              <span className="text-gray-400 font-normal">vs yesterday</span>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-[11px] font-bold text-emerald-600 flex items-center">
+                ↑ +12.4% <span className="text-slate-400 font-normal ml-1">real-time feed</span>
+              </span>
             </div>
+            <span className="text-[10px] text-slate-400 font-medium block mt-0.5">
+              {isLive ? `${liveCount} Live Gateway Orders` : '99.98% Accuracy'}
+            </span>
           </div>
         </div>
 
-        {/* Card 2: Total Transactions */}
-        <div className="bg-white p-4 rounded-2xl border border-gray-200/80 shadow-xs hover:border-gray-300 transition-all flex flex-col justify-between">
-          <div className="flex items-center gap-2 text-gray-600">
-            <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600">
-              <CreditCard className="w-4 h-4" />
+        {/* Card 2: Checked Payments */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs flex flex-col justify-between relative overflow-hidden">
+          <div className="flex items-start justify-between">
+            <div className="w-9 h-9 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600">
+              <FileText className="w-5 h-5" />
             </div>
-            <span className="text-xs font-semibold text-gray-600">Total Transactions</span>
+            <div className="w-20 h-8">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={SPARKLINE_CHECKED}>
+                  <Line type="monotone" dataKey="v" stroke="#8B5CF6" strokeWidth={2} dot={false} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           </div>
           <div className="mt-3">
-            <div className="text-2xl font-black text-gray-900 tracking-tight">
-              {stats.totalTransactions}
+            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">
+              Checked Payments
+            </span>
+            <div className="text-2xl font-black text-blue-600 mt-0.5 font-mono">
+              {isLive ? `${liveCount} Processed` : '1,428,500'}
             </div>
-            <div className="mt-1 flex items-center gap-1 text-[11px] font-semibold text-emerald-600">
-              <span>↑ 6.8%</span>
-              <span className="text-gray-400 font-normal">vs yesterday</span>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-[11px] font-bold text-emerald-600">
+                ↑ Real-Time Sync
+              </span>
             </div>
+            <span className="text-[10px] text-slate-400 font-medium block mt-0.5">
+              Direct Razorpay API Connected
+            </span>
           </div>
         </div>
 
-        {/* Card 3: Transaction Value */}
-        <div className="bg-white p-4 rounded-2xl border border-gray-200/80 shadow-xs hover:border-gray-300 transition-all flex flex-col justify-between">
-          <div className="flex items-center gap-2 text-gray-600">
-            <div className="p-1.5 rounded-lg bg-orange-50 text-orange-600">
-              <IndianRupee className="w-4 h-4" />
+        {/* Card 3: High Risk / Blocked */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs flex flex-col justify-between relative overflow-hidden">
+          <div className="flex items-start justify-between">
+            <div className="w-9 h-9 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-600">
+              <ShieldAlert className="w-5 h-5" />
             </div>
-            <span className="text-xs font-semibold text-gray-600">Transaction Value</span>
+            <span className="text-xs font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-100">
+              {isLive ? `${liveBlockedCount} Flags` : '0.12%'}
+            </span>
           </div>
           <div className="mt-3">
-            <div className="text-2xl font-black text-gray-900 tracking-tight">
-              {stats.transactionValue}
+            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">
+              High Risk / Blocked
+            </span>
+            <div className="text-2xl font-black text-rose-600 mt-0.5 font-mono">
+              {isLive ? `₹${liveBlockedVolume.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '1,842'}
             </div>
-            <div className="mt-1 flex items-center gap-1 text-[11px] font-semibold text-emerald-600">
-              <span>↑ 7.3%</span>
-              <span className="text-gray-400 font-normal">vs yesterday</span>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-[11px] font-bold text-emerald-600">
+                Active Defense
+              </span>
             </div>
+            <span className="text-[10px] text-slate-400 font-medium block mt-0.5">
+              {isLive ? `${liveBlockedCount} transactions flagged` : 'Automated prevention'}
+            </span>
           </div>
         </div>
 
-        {/* Card 4: Fraud Detected */}
-        <div className="bg-white p-4 rounded-2xl border border-gray-200/80 shadow-xs hover:border-gray-300 transition-all flex flex-col justify-between">
-          <div className="flex items-center gap-2 text-gray-600">
-            <div className="p-1.5 rounded-lg bg-red-50 text-red-600">
-              <ShieldAlert className="w-4 h-4" />
+        {/* Card 4: Dispute Exposure */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs flex flex-col justify-between relative overflow-hidden">
+          <div className="flex items-start justify-between">
+            <div className="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
+              <IndianRupee className="w-5 h-5" />
             </div>
-            <span className="text-xs font-semibold text-gray-600">Fraud Detected</span>
+            <div className="w-20 h-8">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={SPARKLINE_DISPUTE}>
+                  <Line type="monotone" dataKey="v" stroke="#10B981" strokeWidth={2} dot={false} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           </div>
           <div className="mt-3">
-            <div className="text-2xl font-black text-gray-900 tracking-tight">
-              {stats.fraudDetected}
+            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">
+              Dispute Exposure
+            </span>
+            <div className="text-2xl font-black text-emerald-600 mt-0.5 font-mono">
+              ₹16,799.00
             </div>
-            <div className="mt-1 flex items-center gap-1 text-[11px] font-semibold text-red-600">
-              <span>↑ 13.4%</span>
-              <span className="text-gray-400 font-normal">vs yesterday</span>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-[11px] font-bold text-emerald-600">
+                ↓ -15.2%
+              </span>
             </div>
-          </div>
-        </div>
-
-        {/* Card 5: Fraud Detection Rate */}
-        <div className="bg-white p-4 rounded-2xl border border-gray-200/80 shadow-xs hover:border-gray-300 transition-all flex flex-col justify-between">
-          <div className="flex items-center gap-2 text-gray-600">
-            <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600">
-              <TrendingUp className="w-4 h-4" />
-            </div>
-            <span className="text-xs font-semibold text-gray-600">Fraud Detection Rate</span>
-          </div>
-          <div className="mt-3">
-            <div className="text-2xl font-black text-gray-900 tracking-tight">
-              {stats.fraudRate}
-            </div>
-            <div className="mt-1 flex items-center gap-1 text-[11px] font-semibold text-emerald-600">
-              <span>↑ 1.2%</span>
-              <span className="text-gray-400 font-normal">vs yesterday</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 6: Active Alerts */}
-        <div className="bg-white p-4 rounded-2xl border border-gray-200/80 shadow-xs hover:border-gray-300 transition-all flex flex-col justify-between">
-          <div className="flex items-center gap-2 text-gray-600">
-            <div className="p-1.5 rounded-lg bg-red-50 text-red-600">
-              <Bell className="w-4 h-4" />
-            </div>
-            <span className="text-xs font-semibold text-gray-600">Active Alerts</span>
-          </div>
-          <div className="mt-3">
-            <div className="text-2xl font-black text-gray-900 tracking-tight">
-              {stats.activeAlerts}
-            </div>
-            <div className="mt-1 flex items-center gap-1.5 text-[11px] font-semibold text-red-600">
-              <span>12 Critical</span>
-              <span className="text-gray-300">•</span>
-              <span className="text-amber-600">15 High</span>
-            </div>
+            <span className="text-[10px] text-slate-400 font-medium block mt-0.5">
+              88.5% Auto Win Rate
+            </span>
           </div>
         </div>
       </div>
 
-      {/* ─────────────────────────────────────────────────────────────
-          4. MIDDLE ROW: ACTIVITY CHART | CHANNELS DONUT | HEATMAP
-         ───────────────────────────────────────────────────────────── */}
+      {/* ─── 3. CHARTS ROW: TRANSACTION RISK DISTRIBUTION + TRANSACTION VOLUME & RISK TREND ─── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        {/* Left: Transaction Activity Chart (6 Cols) */}
-        <div className="lg:col-span-6 bg-white rounded-2xl border border-gray-200/80 p-5 shadow-xs flex flex-col justify-between">
-          <div>
-            {/* Header with Title & Filter Buttons */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3">
-              <div className="flex items-center gap-2">
-                <div className="p-1 rounded-md text-blue-600">
-                  <Activity className="w-4 h-4" />
-                </div>
-                <h3 className="text-sm font-bold text-gray-900">Transaction Activity</h3>
-              </div>
-
-              {/* Segmented Filter Pills */}
-              <div className="inline-flex items-center bg-gray-100 p-1 rounded-xl text-xs font-semibold self-start sm:self-auto">
-                {(['24H', '7D', '30D', 'Live'] as const).map((t) => (
-                  <button
-                    key={t}
-                    onClick={() => setTimeframe(t)}
-                    className={cn(
-                      "px-3 py-1 rounded-lg transition-all cursor-pointer",
-                      timeframe === t
-                        ? "bg-blue-600 text-white shadow-xs"
-                        : "text-gray-600 hover:text-gray-900"
-                    )}
-                  >
-                    {t}
-                  </button>
-                ))}
-              </div>
+        {/* Left: Transaction Risk Distribution Donut (5 Cols) */}
+        <div className="lg:col-span-5 bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs flex flex-col justify-between">
+          <div className="flex items-center justify-between pb-2">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-4 bg-blue-600 rounded-xs" />
+              <h3 className="text-sm font-bold text-slate-900">Transaction Risk Distribution</h3>
             </div>
-
-            {/* Legend */}
-            <div className="flex items-center gap-4 text-xs font-medium text-gray-600 pb-2">
-              <span className="inline-flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-blue-600" />
-                Total
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-                High Risk
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
-                Fraudulent
-              </span>
+            <div className="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-lg">
+              <span>Last 7 Days</span>
+              <ChevronDown className="w-3 h-3 text-slate-400" />
             </div>
           </div>
 
-          {/* Recharts Stacked Bar Chart with Annotated 12:00 Tooltip */}
-          <div className="h-[270px] w-full relative pt-2">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={ACTIVITY_DATA_24H}
-                margin={{ top: 15, right: 10, left: -18, bottom: 0 }}
-                barSize={5}
-              >
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
-                <XAxis
-                  dataKey="time"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: '#94A3B8', fontSize: 10 }}
-                  interval={2}
-                />
-                <YAxis
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: '#94A3B8', fontSize: 10 }}
-                  domain={[0, 50000]}
-                  ticks={[0, 10000, 20000, 30000, 40000, 50000]}
-                  tickFormatter={(val) => (val === 0 ? '0' : `${val / 1000}K`)}
-                />
-                <Tooltip
-                  cursor={{ fill: 'rgba(241, 245, 249, 0.6)' }}
-                  content={({ active, payload, label }) => {
-                    if (active && payload && payload.length) {
-                      const total =
-                        Number(payload.find(p => p.dataKey === 'normal')?.value || 0) +
-                        Number(payload.find(p => p.dataKey === 'highRisk')?.value || 0) +
-                        Number(payload.find(p => p.dataKey === 'fraud')?.value || 0);
-                      const highRisk = Number(payload.find(p => p.dataKey === 'highRisk')?.value || 0);
-                      const fraud = Number(payload.find(p => p.dataKey === 'fraud')?.value || 0);
-
-                      return (
-                        <div className="bg-white border border-gray-200 rounded-xl p-3 shadow-lg text-xs space-y-1 z-30">
-                          <p className="font-bold text-gray-800 pb-1 border-b border-gray-100">
-                            {label} - {label === '12:00' ? '1:00 PM' : 'Next Hour'}
-                          </p>
-                          <div className="flex items-center justify-between gap-4 text-gray-600 pt-0.5">
-                            <span className="flex items-center gap-1.5">
-                              <span className="w-2 h-2 rounded-full bg-blue-600" /> Total
-                            </span>
-                            <span className="font-bold text-gray-900">{total.toLocaleString()}</span>
-                          </div>
-                          <div className="flex items-center justify-between gap-4 text-gray-600">
-                            <span className="flex items-center gap-1.5">
-                              <span className="w-2 h-2 rounded-full bg-amber-500" /> High Risk
-                            </span>
-                            <span className="font-bold text-gray-900">{highRisk.toLocaleString()}</span>
-                          </div>
-                          <div className="flex items-center justify-between gap-4 text-gray-600">
-                            <span className="flex items-center gap-1.5">
-                              <span className="w-2 h-2 rounded-full bg-red-500" /> Fraud
-                            </span>
-                            <span className="font-bold text-red-600">{fraud.toLocaleString()}</span>
-                          </div>
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
-                />
-                {/* Stacked Bars: Fraud (base), High Risk (middle), Normal (top) */}
-                <Bar dataKey="fraud" stackId="a" fill="#EF4444" radius={[0, 0, 0, 0]} />
-                <Bar dataKey="highRisk" stackId="a" fill="#F59E0B" radius={[0, 0, 0, 0]} />
-                <Bar dataKey="normal" stackId="a" fill="#2563EB" radius={[2, 2, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-
-            {/* Static Highlight Marker & Floating Callout matching screenshot */}
-            <div
-              className="absolute pointer-events-none transition-all hidden sm:block"
-              style={{ left: '52.5%', top: '24%' }}
-            >
-              {/* Vertical Guide Line */}
-              <div className="w-[1.5px] h-[170px] bg-blue-500/70 absolute top-2 left-0" />
-              {/* Highlight Dot */}
-              <div className="w-3 h-3 rounded-full bg-blue-600 border-2 border-white shadow-xs -left-[5px] -top-1 absolute" />
-
-              {/* Floating Tooltip Box */}
-              <div className="absolute left-4 -top-8 bg-white border border-gray-200/90 rounded-xl p-2.5 shadow-xl text-[11px] min-w-[130px] space-y-1 z-20">
-                <div className="font-bold text-gray-800 pb-1 border-b border-gray-100 text-[10px]">
-                  12:00 - 1:00 PM
-                </div>
-                <div className="flex items-center justify-between gap-2">
-                  <span className="flex items-center gap-1 text-gray-500">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-600" /> Total
-                  </span>
-                  <span className="font-bold text-gray-900">42,683</span>
-                </div>
-                <div className="flex items-center justify-between gap-2">
-                  <span className="flex items-center gap-1 text-gray-500">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> High Risk
-                  </span>
-                  <span className="font-bold text-gray-900">2,043</span>
-                </div>
-                <div className="flex items-center justify-between gap-2">
-                  <span className="flex items-center gap-1 text-gray-500">
-                    <span className="w-1.5 h-1.5 rounded-full bg-red-500" /> Fraud
-                  </span>
-                  <span className="font-bold text-red-600">312</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Center: Transaction Channels Donut Chart (3 Cols) */}
-        <div className="lg:col-span-3 bg-white rounded-2xl border border-gray-200/80 p-5 shadow-xs flex flex-col justify-between">
-          <div className="pb-2">
-            <h3 className="text-sm font-bold text-gray-900">Transaction Channels</h3>
-          </div>
-
-          <div className="flex items-center justify-between gap-2 my-auto">
+          <div className="flex items-center justify-between gap-4 my-auto py-2">
             {/* Donut Chart with Center Text */}
-            <div className="w-[150px] h-[150px] relative shrink-0">
+            <div className="w-44 h-44 relative flex items-center justify-center">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={CHANNEL_DATA}
+                    data={donutData}
                     dataKey="value"
-                    nameKey="name"
-                    innerRadius={46}
-                    outerRadius={65}
-                    paddingAngle={2}
+                    innerRadius={52}
+                    outerRadius={72}
+                    paddingAngle={3}
                     stroke="none"
                   >
-                    {CHANNEL_DATA.map((entry) => (
-                      <Cell key={entry.name} fill={entry.color} />
+                    {donutData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
                 </PieChart>
               </ResponsiveContainer>
-              {/* Center Content */}
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-base font-black text-gray-900 leading-none">1.84M</span>
-                <span className="text-[10px] font-medium text-gray-400 mt-0.5">Total Txns</span>
+                <span className="text-lg font-black text-slate-900 leading-tight">
+                  {isLive ? '6 Txns' : '1.42M'}
+                </span>
+                <span className="text-[10px] text-slate-400 font-medium">
+                  {isLive ? 'Live Feed' : 'Total'}
+                </span>
               </div>
             </div>
 
-            {/* Channels Legend */}
-            <div className="flex-1 space-y-2 pl-2">
-              {CHANNEL_DATA.map((item) => (
+            {/* Legend Stats Table */}
+            <div className="space-y-3 flex-1">
+              {donutData.map((item) => (
                 <div key={item.name} className="flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <span
-                      className="w-2 h-2 rounded-full shrink-0"
-                      style={{ backgroundColor: item.color }}
-                    />
-                    <span className="font-medium text-gray-700 text-[11px]">{item.name}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                    <span className="font-medium text-slate-700">{item.name}</span>
                   </div>
-                  <span className="font-bold text-gray-900 text-[11px]">{item.value}%</span>
+                  <div className="flex items-center gap-3">
+                    <span className="font-mono font-bold text-slate-900">
+                      {item.value.toLocaleString('en-IN')}
+                    </span>
+                    <span className="font-semibold text-slate-500 w-10 text-right">
+                      {item.pct}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
-
-          <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-400">
-            <span>Primary Routing</span>
-            <span className="font-semibold text-blue-600">UPI 42.6%</span>
-          </div>
         </div>
 
-        {/* Right: System Risk Heatmap (3 Cols) */}
-        <div className="lg:col-span-3">
-          <IndiaRiskHeatmap />
+        {/* Right: Transaction Volume & Risk Trend Multi-Line Chart (7 Cols) */}
+        <div className="lg:col-span-7 bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs flex flex-col justify-between">
+          <div className="flex items-center justify-between pb-2">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-4 bg-blue-600 rounded-xs" />
+              <h3 className="text-sm font-bold text-slate-900">Transaction Volume & Risk Trend</h3>
+            </div>
+
+            <div className="flex items-center gap-4">
+              {/* Chart Legend */}
+              <div className="flex items-center gap-3 text-xs font-semibold">
+                <span className="inline-flex items-center gap-1.5 text-blue-600">
+                  <span className="w-2.5 h-2.5 rounded-full bg-blue-600" />
+                  Total
+                </span>
+                <span className="inline-flex items-center gap-1.5 text-rose-600">
+                  <span className="w-2.5 h-2.5 rounded-full bg-rose-600" />
+                  High Risk
+                </span>
+                <span className="inline-flex items-center gap-1.5 text-amber-600">
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+                  Disputes
+                </span>
+              </div>
+
+              <div className="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-lg">
+                <span>Daily</span>
+                <ChevronDown className="w-3 h-3 text-slate-400" />
+              </div>
+            </div>
+          </div>
+
+          <div className="h-[210px] w-full pt-2">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={TREND_CHART_DATA} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.2}/>
+                    <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 10 }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 10 }} tickFormatter={(v) => `${v/1000}k`} />
+                <Tooltip />
+                <Area type="monotone" dataKey="total" stroke="#2563EB" strokeWidth={2.5} fillOpacity={1} fill="url(#colorTotal)" dot={{ r: 3, fill: '#2563EB' }} />
+                <Line type="monotone" dataKey="highRisk" stroke="#EF4444" strokeWidth={2} dot={{ r: 3, fill: '#EF4444' }} />
+                <Line type="monotone" dataKey="disputes" stroke="#F59E0B" strokeWidth={2} dot={{ r: 3, fill: '#F59E0B' }} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
 
-      {/* ─────────────────────────────────────────────────────────────
-          5. BOTTOM ROW: RECENT ALERTS | LAYER BREAKDOWN | SYSTEM HEALTH
-         ───────────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        {/* Left: Recent High-Risk Alerts Table (6 Cols) */}
-        <div className="lg:col-span-6 bg-white rounded-2xl border border-gray-200/80 p-5 shadow-xs flex flex-col justify-between">
+      {/* ─── 4. BOTTOM SECTION: SANDBOX / LIVE TRANSACTION STREAM TABLE ─── */}
+      <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-2xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
           <div>
-            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-              <h3 className="text-sm font-bold text-gray-900">Recent High-Risk Alerts</h3>
+            <div className="flex items-center gap-2">
+              <span className={cn("w-2.5 h-2.5 rounded-full", isLive ? "bg-emerald-500 animate-pulse" : "bg-emerald-500")} />
+              <h2 className="text-base font-bold text-slate-900">
+                {isLive ? 'Live Transaction Stream' : 'Sandbox Transaction Stream'}
+              </h2>
+            </div>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Click any transaction to inspect the exact risk signals and reasons for scoring.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-slate-400 font-medium">
+              Showing {(livePayments || []).length} {isLive ? 'live merchant transactions' : 'of 1,428,500 benchmark payments'}
+            </span>
+            <button
+              onClick={() => showToast(isLive ? 'All live merchant transactions displayed' : 'Displaying full 1.42M audit ledger snapshot')}
+              className="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 cursor-pointer"
+            >
+              <span>View All</span>
+              <span>→</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Transactions Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead>
+              <tr className="text-[10px] font-bold text-slate-400 border-b border-slate-100 uppercase tracking-wider">
+                <th className="py-2.5 w-8">
+                  <input type="checkbox" className="rounded border-slate-300 text-blue-600 focus:ring-0" />
+                </th>
+                <th className="py-2.5 font-semibold">PAYMENT ID</th>
+                <th className="py-2.5 font-semibold">CUSTOMER / CONTACT</th>
+                <th className="py-2.5 font-semibold">AMOUNT</th>
+                <th className="py-2.5 font-semibold">STATUS</th>
+                <th className="py-2.5 font-semibold">RISK TIER</th>
+                <th className="py-2.5 font-semibold">PRIMARY RISK REASON</th>
+                <th className="py-2.5 font-semibold">TIME</th>
+                <th className="py-2.5 font-semibold text-right">ACTION</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 font-medium">
+              {(livePayments || []).map((p) => {
+                const isCrit = p.risk_level === 'CRITICAL';
+                const isHigh = p.risk_level === 'HIGH';
+                const isMed = p.risk_level === 'MEDIUM';
+
+                return (
+                  <tr
+                    key={p.id}
+                    onClick={() => setSelectedPayment(p)}
+                    className="hover:bg-blue-50/20 transition-colors cursor-pointer group"
+                  >
+                    {/* Checkbox */}
+                    <td className="py-3" onClick={(e) => e.stopPropagation()}>
+                      <input type="checkbox" className="rounded border-slate-300 text-blue-600 focus:ring-0" />
+                    </td>
+
+                    {/* Payment ID */}
+                    <td className="py-3 whitespace-nowrap font-mono font-bold text-blue-600 group-hover:underline">
+                      <div>{p.id}</div>
+                      <span className="text-[10px] text-slate-400 font-sans font-normal">
+                        {p.card_network ? `${p.card_network} •••• ${p.card_last4 || '1007'}` : (p.method || 'Visa').toUpperCase() + ' •••• 1007'}
+                      </span>
+                    </td>
+
+                    {/* Customer Contact */}
+                    <td className="py-3 whitespace-nowrap">
+                      <div className="font-semibold text-slate-900">{p.email || 'manav.nagpal2005@gmail.com'}</div>
+                      <div className="text-[10px] text-slate-400 font-mono">{p.contact || '+919896817707'}</div>
+                    </td>
+
+                    {/* Amount */}
+                    <td className="py-3 whitespace-nowrap font-mono font-bold text-slate-900">
+                      ₹{(p.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    </td>
+
+                    {/* Status */}
+                    <td className="py-3 whitespace-nowrap">
+                      <span className={cn(
+                        "px-2.5 py-0.5 rounded-full text-[10px] font-bold inline-flex items-center gap-1",
+                        p.status === 'captured' && "bg-emerald-50 text-emerald-700 border border-emerald-200",
+                        p.status === 'failed' && "bg-rose-50 text-rose-700 border border-rose-200",
+                        p.status === 'authorized' && "bg-blue-50 text-blue-700 border border-blue-200"
+                      )}>
+                        {p.status === 'captured' ? <CheckCircle2 className="w-3 h-3 text-emerald-600" /> : null}
+                        {p.status === 'failed' ? <XCircle className="w-3 h-3 text-rose-600" /> : null}
+                        <span className="capitalize">{p.status}</span>
+                      </span>
+                    </td>
+
+                    {/* Risk Tier */}
+                    <td className="py-3 whitespace-nowrap">
+                      <span className={cn(
+                        "px-2.5 py-0.5 rounded-full text-[10px] font-bold",
+                        isCrit && "bg-rose-50 text-rose-700 border border-rose-200",
+                        isHigh && "bg-amber-50 text-amber-700 border border-amber-200",
+                        isMed && "bg-sky-50 text-sky-700 border border-sky-200",
+                        !isCrit && !isHigh && !isMed && "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                      )}>
+                        {p.risk_level === 'CRITICAL' ? 'Critical (85/100)' : p.risk_level === 'HIGH' ? 'High (70/100)' : 'Low (12/100)'}
+                      </span>
+                    </td>
+
+                    {/* Primary Risk Reason */}
+                    <td className="py-3 max-w-xs truncate text-[11px] text-slate-600">
+                      {p.risk_reasons?.[0] || p.error_description || "Standard transaction verification passed"}
+                    </td>
+
+                    {/* Time */}
+                    <td className="py-3 whitespace-nowrap text-slate-500 text-[11px] font-mono">
+                      Sep 4, 7:02 AM
+                    </td>
+
+                    {/* Action */}
+                    <td className="py-3 whitespace-nowrap text-right">
+                      <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={() => setSelectedPayment(p)}
+                          className="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs rounded-lg transition-colors cursor-pointer"
+                        >
+                          Inspect →
+                        </button>
+                        <button className="p-1 text-slate-400 hover:text-slate-600">
+                          <MoreVertical className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* ─── 5. INSPECTION MODAL ─── */}
+      {selectedPayment && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
+          <div className="bg-white border border-slate-200 rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-5 text-slate-800">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                  Payment Risk Inspection
+                </span>
+                <h3 className="text-lg font-bold text-slate-900 mt-0.5">{selectedPayment.id}</h3>
+              </div>
               <button
-                onClick={() => navigate('/admin/alerts')}
-                className="text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors inline-flex items-center gap-1 cursor-pointer"
+                onClick={() => setSelectedPayment(null)}
+                className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 cursor-pointer"
               >
-                <span>View All</span>
-                <ArrowRight className="w-3 h-3" />
+                ✕
               </button>
             </div>
 
-            {/* Table */}
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="text-[10px] font-bold text-gray-400 border-b border-gray-100 uppercase">
-                    <th className="py-2.5 font-semibold">Time</th>
-                    <th className="py-2.5 font-semibold">Customer ID</th>
-                    <th className="py-2.5 font-semibold">Event</th>
-                    <th className="py-2.5 font-semibold">Amount</th>
-                    <th className="py-2.5 font-semibold">Risk Level</th>
-                    <th className="py-2.5 font-semibold">Status</th>
-                    <th className="py-2.5 font-semibold text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50 font-medium">
-                  {RECENT_ALERTS.map((row) => (
-                    <tr
-                      key={row.id}
-                      onClick={() => handleInvestigate(row.customerId)}
-                      className="hover:bg-blue-50/30 transition-colors cursor-pointer group"
-                    >
-                      {/* Time with user circle avatar icon */}
-                      <td className="py-3 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <div
-                            className={cn(
-                              "w-5 h-5 rounded-full flex items-center justify-center shrink-0",
-                              row.badgeVariant === 'critical'
-                                ? "bg-red-100 text-red-600"
-                                : row.badgeVariant === 'high'
-                                ? "bg-amber-100 text-amber-600"
-                                : "bg-yellow-100 text-yellow-600"
-                            )}
-                          >
-                            <User className="w-3 h-3" />
-                          </div>
-                          <span className="text-[11px] text-gray-500 font-mono">{row.time}</span>
-                        </div>
-                      </td>
-
-                      {/* Customer ID */}
-                      <td className="py-3 whitespace-nowrap font-mono font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
-                        {row.customerId}
-                      </td>
-
-                      {/* Event */}
-                      <td className="py-3 whitespace-nowrap text-gray-800 text-[11px]">
-                        {row.event}
-                      </td>
-
-                      {/* Amount */}
-                      <td className="py-3 whitespace-nowrap font-bold text-gray-900 text-[11px]">
-                        {row.amount}
-                      </td>
-
-                      {/* Risk Level Badge */}
-                      <td className="py-3 whitespace-nowrap">
-                        <span
-                          className={cn(
-                            "px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1",
-                            row.badgeVariant === 'critical'
-                              ? "bg-red-50 text-red-700 border border-red-200"
-                              : row.badgeVariant === 'high'
-                              ? "bg-amber-50 text-amber-700 border border-amber-200"
-                              : "bg-yellow-50 text-yellow-700 border border-yellow-200"
-                          )}
-                        >
-                          {row.badgeVariant === 'critical' && <span>^</span>}
-                          {row.badgeVariant !== 'critical' && <span>+</span>}
-                          {row.riskLevel}
-                        </span>
-                      </td>
-
-                      {/* Status */}
-                      <td className="py-3 whitespace-nowrap">
-                        <span className="inline-flex items-center gap-1 text-[11px] font-medium text-gray-700">
-                          <span
-                            className={cn(
-                              "w-1.5 h-1.5 rounded-full",
-                              row.status === 'Open' ? "bg-emerald-500" : "bg-amber-500"
-                            )}
-                          />
-                          {row.status}
-                        </span>
-                      </td>
-
-                      {/* Action */}
-                      <td className="py-3 whitespace-nowrap text-right">
-                        <span className="text-blue-600 font-semibold text-[11px] group-hover:underline inline-flex items-center gap-0.5">
-                          {row.actionText}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            {/* Risk Score Banner */}
+            <div className={cn(
+              "p-4 rounded-xl border flex items-center justify-between",
+              selectedPayment.risk_level === 'CRITICAL' && "bg-rose-50 border-rose-200 text-rose-900",
+              selectedPayment.risk_level === 'HIGH' && "bg-amber-50 border-amber-200 text-amber-900",
+              selectedPayment.risk_level === 'MEDIUM' && "bg-sky-50 border-sky-200 text-sky-900",
+              selectedPayment.risk_level === 'LOW' && "bg-emerald-50 border-emerald-200 text-emerald-900"
+            )}>
+              <div>
+                <span className="text-xs font-bold uppercase tracking-wider block">Assessed Risk Score</span>
+                <div className="text-2xl font-black mt-0.5">{selectedPayment.risk_score} / 100 ({selectedPayment.risk_level})</div>
+              </div>
+              <div className="text-right">
+                <span className="text-xs font-semibold block">Order Amount</span>
+                <div className="text-lg font-mono font-bold">
+                  ₹{(selectedPayment.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        {/* Center: Fraud Detected by Layer (3 Cols) */}
-        <div className="lg:col-span-3 bg-white rounded-2xl border border-gray-200/80 p-5 shadow-xs flex flex-col justify-between">
-          <div className="flex items-center justify-between pb-2">
-            <h3 className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
-              <span>Fraud Detected by Layer</span>
-              <ArrowRight className="w-3 h-3 text-gray-400" />
-            </h3>
-          </div>
-
-          <div className="space-y-3 my-auto pt-1">
-            {LAYER_BREAKDOWN.map((layer) => (
-              <div key={layer.name} className="flex items-center gap-3">
-                <span className="text-[11px] font-semibold text-gray-700 w-28 shrink-0 truncate">
-                  {layer.name}
-                </span>
-
-                {/* Progress Bar */}
-                <div className="flex-1 bg-gray-100 rounded-full h-3 overflow-hidden">
-                  <div
-                    className="bg-blue-600 h-full rounded-full transition-all duration-700"
-                    style={{ width: `${layer.pct * 2.8}%` }}
-                  />
-                </div>
-
-                <span className="text-[11px] font-bold text-gray-900 w-8 text-right shrink-0">
-                  {layer.pct}%
-                </span>
-              </div>
-            ))}
-          </div>
-
-          <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-400">
-            <span>Primary Block Point</span>
-            <span className="font-semibold text-blue-600">Entry Gateway (28%)</span>
-          </div>
-        </div>
-
-        {/* Right: System Health (3 Cols) */}
-        <div className="lg:col-span-3 bg-white rounded-2xl border border-gray-200/80 p-5 shadow-xs flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-              <div className="flex items-center gap-2">
-                <div className="p-1 rounded-md text-emerald-600">
-                  <Layers className="w-4 h-4" />
-                </div>
-                <h3 className="text-sm font-bold text-gray-900">System Health</h3>
-              </div>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                All Services Operational
+            {/* Risk Factors List */}
+            <div className="space-y-2">
+              <span className="text-xs font-bold text-slate-700 uppercase tracking-wider block">
+                Why this was scored as {selectedPayment.risk_level} Risk:
               </span>
+              <div className="space-y-1.5">
+                {(selectedPayment.risk_reasons || []).map((reason, idx) => (
+                  <div key={idx} className="p-2.5 bg-slate-50 rounded-lg border border-slate-100 text-xs flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-600 mt-1.5 shrink-0" />
+                    <span>{reason}</span>
+                  </div>
+                ))}
+              </div>
             </div>
 
-            {/* Health Rows */}
-            <div className="divide-y divide-gray-50 pt-1">
-              {HEALTH_SERVICES.map((srv) => (
-                <div key={srv.name} className="py-2 flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    <span className="text-gray-800 font-medium text-[11px]">{srv.name}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
-                      {srv.status}
-                    </span>
-                    <span className="font-mono text-gray-400 text-[11px] w-10 text-right">
-                      {srv.latency}
-                    </span>
-                  </div>
-                </div>
-              ))}
+            {/* Payment Metadata */}
+            <div className="grid grid-cols-2 gap-3 text-xs bg-slate-50 p-3 rounded-xl border border-slate-100">
+              <div>
+                <span className="text-slate-400 block">Customer Contact</span>
+                <span className="font-semibold text-slate-800">{selectedPayment.contact || 'N/A'}</span>
+              </div>
+              <div>
+                <span className="text-slate-400 block">Customer Email</span>
+                <span className="font-semibold text-slate-800 truncate block">{selectedPayment.email || 'N/A'}</span>
+              </div>
+              <div>
+                <span className="text-slate-400 block">Payment Method</span>
+                <span className="font-semibold text-slate-800">{selectedPayment.card_network ? `${selectedPayment.card_network} Card` : selectedPayment.method.toUpperCase()}</span>
+              </div>
+              <div>
+                <span className="text-slate-400 block">Status</span>
+                <span className="font-semibold text-slate-800 capitalize">{selectedPayment.status}</span>
+              </div>
             </div>
-          </div>
 
-          <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-400">
-            <span>Engine Runtime</span>
-            <span className="font-semibold text-emerald-600">100% Uptime (99.98% SLA)</span>
+            {/* Actions */}
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                onClick={() => setSelectedPayment(null)}
+                className="px-4 py-2 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer"
+              >
+                Close
+              </button>
+              <button
+                onClick={() => {
+                  setSelectedPayment(null);
+                  navigate('/chargebacks');
+                }}
+                className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold cursor-pointer"
+              >
+                Open Dispute Resolver
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
